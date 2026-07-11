@@ -1,0 +1,812 @@
+{
+  "level1": [
+    {
+      "id": "1-1",
+      "word": "apple",
+      "definition": "a round fruit with red or green skin",
+      "chinese_meaning": "苹果",
+      "example_sentence": "I eat an apple every day.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-2",
+      "word": "book",
+      "definition": "a set of pages fastened together",
+      "chinese_meaning": "书",
+      "example_sentence": "She is reading a book.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-3",
+      "word": "cat",
+      "definition": "a small domestic animal",
+      "chinese_meaning": "猫",
+      "example_sentence": "The cat is sleeping.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-4",
+      "word": "dog",
+      "definition": "a domestic animal kept as a pet",
+      "chinese_meaning": "狗",
+      "example_sentence": "My dog likes to play.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-5",
+      "word": "egg",
+      "definition": "an oval object laid by birds",
+      "chinese_meaning": "蛋",
+      "example_sentence": "I had two eggs for breakfast.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-6",
+      "word": "fish",
+      "definition": "a creature that lives in water",
+      "chinese_meaning": "鱼",
+      "example_sentence": "Fish swim in the river.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-7",
+      "word": "hand",
+      "definition": "the part of the body at the end of the arm",
+      "chinese_meaning": "手",
+      "example_sentence": "Use your hand to write.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-8",
+      "word": "jump",
+      "definition": "to push yourself into the air",
+      "chinese_meaning": "跳",
+      "example_sentence": "Children jump in the park.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-9",
+      "word": "king",
+      "definition": "a male ruler of a country",
+      "chinese_meaning": "国王",
+      "example_sentence": "The king rules the kingdom.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-10",
+      "word": "lamp",
+      "definition": "a device that gives light",
+      "chinese_meaning": "灯",
+      "example_sentence": "Turn on the lamp.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-11",
+      "word": "moon",
+      "definition": "the round object in the sky at night",
+      "chinese_meaning": "月亮",
+      "example_sentence": "The moon shines brightly.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-12",
+      "word": "nice",
+      "definition": "pleasant or enjoyable",
+      "chinese_meaning": "好的，友好的",
+      "example_sentence": "She is a nice person.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-13",
+      "word": "open",
+      "definition": "to move a door or window",
+      "chinese_meaning": "打开",
+      "example_sentence": "Open the window.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-14",
+      "word": "park",
+      "definition": "a public area for recreation",
+      "chinese_meaning": "公园",
+      "example_sentence": "We walk in the park.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-15",
+      "word": "rain",
+      "definition": "water falling from clouds",
+      "chinese_meaning": "雨",
+      "example_sentence": "The rain is heavy today.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-16",
+      "word": "star",
+      "definition": "a bright point in the night sky",
+      "chinese_meaning": "星星",
+      "example_sentence": "Stars are beautiful.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-17",
+      "word": "tree",
+      "definition": "a large plant with a trunk",
+      "chinese_meaning": "树",
+      "example_sentence": "Birds live in trees.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-18",
+      "word": "water",
+      "definition": "a clear liquid essential for life",
+      "chinese_meaning": "水",
+      "example_sentence": "Drink plenty of water.",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-19",
+      "word": "year",
+      "definition": "a period of 365 days",
+      "chinese_meaning": "年",
+      "example_sentence": "Happy New Year!",
+      "difficulty_level": 1
+    },
+    {
+      "id": "1-20",
+      "word": "zero",
+      "definition": "the number 0",
+      "chinese_meaning": "零",
+      "example_sentence": "Start from zero.",
+      "difficulty_level": 1
+    }
+  ],
+  "level2": [
+    {
+      "id": "2-1",
+      "word": "beach",
+      "definition": "a sandy area by the sea",
+      "chinese_meaning": "海滩",
+      "example_sentence": "We went to the beach.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-2",
+      "word": "cloud",
+      "definition": "white or gray mass in the sky",
+      "chinese_meaning": "云",
+      "example_sentence": "Clouds cover the sky.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-3",
+      "word": "dream",
+      "definition": "a series of images in sleep",
+      "chinese_meaning": "梦",
+      "example_sentence": "I had a good dream.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-4",
+      "word": "earth",
+      "definition": "the planet we live on",
+      "chinese_meaning": "地球",
+      "example_sentence": "Earth is our home.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-5",
+      "word": "friend",
+      "definition": "a person you like and trust",
+      "chinese_meaning": "朋友",
+      "example_sentence": "He is my best friend.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-6",
+      "word": "garden",
+      "definition": "a piece of land for growing plants",
+      "chinese_meaning": "花园",
+      "example_sentence": "Flowers grow in the garden.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-7",
+      "word": "happy",
+      "definition": "feeling or showing pleasure",
+      "chinese_meaning": "快乐的",
+      "example_sentence": "I am very happy today.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-8",
+      "word": "island",
+      "definition": "a piece of land surrounded by water",
+      "chinese_meaning": "岛屿",
+      "example_sentence": "We visited an island.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-9",
+      "word": "juice",
+      "definition": "liquid from fruits or vegetables",
+      "chinese_meaning": "果汁",
+      "example_sentence": "Drink orange juice.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-10",
+      "word": "kitchen",
+      "definition": "a room for cooking",
+      "chinese_meaning": "厨房",
+      "example_sentence": "Cook in the kitchen.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-11",
+      "word": "library",
+      "definition": "a place with many books",
+      "chinese_meaning": "图书馆",
+      "example_sentence": "Study in the library.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-12",
+      "word": "movie",
+      "definition": "a story shown on screen",
+      "chinese_meaning": "电影",
+      "example_sentence": "Watch a movie tonight.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-13",
+      "word": "nature",
+      "definition": "the physical world",
+      "chinese_meaning": "自然",
+      "example_sentence": "Love nature and protect it.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-14",
+      "word": "orange",
+      "definition": "a round fruit with orange skin",
+      "chinese_meaning": "橙子",
+      "example_sentence": "Oranges are sweet.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-15",
+      "word": "people",
+      "definition": "human beings in general",
+      "chinese_meaning": "人们",
+      "example_sentence": "People work together.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-16",
+      "word": "river",
+      "definition": "a large natural stream of water",
+      "chinese_meaning": "河",
+      "example_sentence": "The river flows to the sea.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-17",
+      "word": "school",
+      "definition": "a place for learning",
+      "chinese_meaning": "学校",
+      "example_sentence": "Go to school every day.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-18",
+      "word": "table",
+      "definition": "a piece of furniture with a flat top",
+      "chinese_meaning": "桌子",
+      "example_sentence": "Put the book on the table.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-19",
+      "word": "travel",
+      "definition": "to go from one place to another",
+      "chinese_meaning": "旅行",
+      "example_sentence": "I love to travel.",
+      "difficulty_level": 2
+    },
+    {
+      "id": "2-20",
+      "word": "window",
+      "definition": "an opening in a wall for light",
+      "chinese_meaning": "窗户",
+      "example_sentence": "Open the window.",
+      "difficulty_level": 2
+    }
+  ],
+  "level3": [
+    {
+      "id": "3-1",
+      "word": "accept",
+      "definition": "to agree to receive something",
+      "chinese_meaning": "接受",
+      "example_sentence": "Accept the offer.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-2",
+      "word": "bridge",
+      "definition": "a structure built over water",
+      "chinese_meaning": "桥",
+      "example_sentence": "Cross the bridge carefully.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-3",
+      "word": "circle",
+      "definition": "a round shape",
+      "chinese_meaning": "圆圈",
+      "example_sentence": "Draw a circle.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-4",
+      "word": "create",
+      "definition": "to make something new",
+      "chinese_meaning": "创造",
+      "example_sentence": "Create art with passion.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-5",
+      "word": "decide",
+      "definition": "to make a choice",
+      "chinese_meaning": "决定",
+      "example_sentence": "Decide what to do.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-6",
+      "word": "enjoy",
+      "definition": "to get pleasure from",
+      "chinese_meaning": "享受",
+      "example_sentence": "Enjoy the moment.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-7",
+      "word": "future",
+      "definition": "time that is yet to come",
+      "chinese_meaning": "未来",
+      "example_sentence": "Plan for the future.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-8",
+      "word": "global",
+      "definition": "relating to the whole world",
+      "chinese_meaning": "全球的",
+      "example_sentence": "A global problem needs global solution.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-9",
+      "word": "health",
+      "definition": "the state of being well",
+      "chinese_meaning": "健康",
+      "example_sentence": "Health is important.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-10",
+      "word": "improve",
+      "definition": "to make something better",
+      "chinese_meaning": "改进",
+      "example_sentence": "Improve your skills.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-11",
+      "word": "listen",
+      "definition": "to give attention to sound",
+      "chinese_meaning": "听",
+      "example_sentence": "Listen to music.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-12",
+      "word": "method",
+      "definition": "a way of doing something",
+      "chinese_meaning": "方法",
+      "example_sentence": "Use a new method.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-13",
+      "word": "nature",
+      "definition": "the physical world and its phenomena",
+      "chinese_meaning": "自然",
+      "example_sentence": "Respect nature.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-14",
+      "word": "obtain",
+      "definition": "to get something",
+      "chinese_meaning": "获得",
+      "example_sentence": "Obtain a degree.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-15",
+      "word": "person",
+      "definition": "an individual human being",
+      "chinese_meaning": "人",
+      "example_sentence": "Every person is unique.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-16",
+      "word": "quality",
+      "definition": "the standard of something",
+      "chinese_meaning": "质量",
+      "example_sentence": "Focus on quality.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-17",
+      "word": "remember",
+      "definition": "to keep in mind",
+      "chinese_meaning": "记住",
+      "example_sentence": "Remember the past.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-18",
+      "word": "science",
+      "definition": "systematic study of the world",
+      "chinese_meaning": "科学",
+      "example_sentence": "Science helps us understand.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-19",
+      "word": "technology",
+      "definition": "the application of scientific knowledge",
+      "chinese_meaning": "技术",
+      "example_sentence": "Technology changes fast.",
+      "difficulty_level": 3
+    },
+    {
+      "id": "3-20",
+      "word": "wonder",
+      "definition": "to feel curiosity or amazement",
+      "chinese_meaning": "想知道，惊讶",
+      "example_sentence": "I wonder why.",
+      "difficulty_level": 3
+    }
+  ],
+  "level4": [
+    {
+      "id": "4-1",
+      "word": "abstract",
+      "definition": "existing in thought but not physically",
+      "chinese_meaning": "抽象的",
+      "example_sentence": "Abstract ideas are hard to explain.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-2",
+      "word": "bachelor",
+      "definition": "a person with a first degree",
+      "chinese_meaning": "学士学位",
+      "example_sentence": "He has a bachelor degree.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-3",
+      "word": "cognitive",
+      "definition": "relating to mental processes",
+      "chinese_meaning": "认知的",
+      "example_sentence": "Cognitive skills are important.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-4",
+      "word": "democracy",
+      "definition": "a system of government by the people",
+      "chinese_meaning": "民主",
+      "example_sentence": "Democracy values freedom.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-5",
+      "word": "efficient",
+      "definition": "working well and quickly",
+      "chinese_meaning": "高效的",
+      "example_sentence": "Be efficient in work.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-6",
+      "word": "framework",
+      "definition": "a basic structure underlying a system",
+      "chinese_meaning": "框架",
+      "example_sentence": "Use a framework to build.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-7",
+      "word": "generate",
+      "definition": "to produce or create",
+      "chinese_meaning": "生成",
+      "example_sentence": "Generate new ideas.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-8",
+      "word": "hypothesis",
+      "definition": "a proposed explanation for a phenomenon",
+      "chinese_meaning": "假设",
+      "example_sentence": "Test the hypothesis.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-9",
+      "word": "innovative",
+      "definition": "introducing new ideas or methods",
+      "chinese_meaning": "创新的",
+      "example_sentence": "Be innovative in thinking.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-10",
+      "word": "judgment",
+      "definition": "the ability to make good decisions",
+      "chinese_meaning": "判断",
+      "example_sentence": "Use good judgment.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-11",
+      "word": "knowledge",
+      "definition": "information and skills acquired",
+      "chinese_meaning": "知识",
+      "example_sentence": "Knowledge is power.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-12",
+      "word": "legitimate",
+      "definition": "according to law or rules",
+      "chinese_meaning": "合法的",
+      "example_sentence": "Legitimate business is important.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-13",
+      "word": "methodology",
+      "definition": "a system of methods",
+      "chinese_meaning": "方法论",
+      "example_sentence": "Follow the methodology.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-14",
+      "word": "negotiate",
+      "definition": "to discuss to reach agreement",
+      "chinese_meaning": "谈判",
+      "example_sentence": "Negotiate the deal.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-15",
+      "word": "objective",
+      "definition": "not influenced by personal feelings",
+      "chinese_meaning": "客观的",
+      "example_sentence": "Stay objective in analysis.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-16",
+      "word": "phenomenon",
+      "definition": "a fact or event in nature",
+      "chinese_meaning": "现象",
+      "example_sentence": "Study the phenomenon.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-17",
+      "word": "redundant",
+      "definition": "not needed or unnecessary",
+      "chinese_meaning": "多余的",
+      "example_sentence": "Remove redundant steps.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-18",
+      "word": "strategic",
+      "definition": "relating to long-term plans",
+      "chinese_meaning": "战略的",
+      "example_sentence": "Think strategically.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-19",
+      "word": "thesis",
+      "definition": "a long essay on a subject",
+      "chinese_meaning": "论文",
+      "example_sentence": "Write a thesis.",
+      "difficulty_level": 4
+    },
+    {
+      "id": "4-20",
+      "word": "validate",
+      "definition": "to prove the truth or accuracy",
+      "chinese_meaning": "验证",
+      "example_sentence": "Validate the results.",
+      "difficulty_level": 4
+    }
+  ],
+  "level5": [
+    {
+      "id": "5-1",
+      "word": "ambiguous",
+      "definition": "open to more than one interpretation",
+      "chinese_meaning": "模棱两可的",
+      "example_sentence": "The statement was ambiguous.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-2",
+      "word": "bureaucratic",
+      "definition": "relating to complex official procedures",
+      "chinese_meaning": "官僚主义的",
+      "example_sentence": "Bureaucratic processes are slow.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-3",
+      "word": "conundrum",
+      "definition": "a confusing and difficult problem",
+      "chinese_meaning": "难题",
+      "example_sentence": "This is a real conundrum.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-4",
+      "word": "dichotomy",
+      "definition": "a division into two contrasting things",
+      "chinese_meaning": "二分法",
+      "example_sentence": "There is a dichotomy here.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-5",
+      "word": "empirical",
+      "definition": "based on observation or experience",
+      "chinese_meaning": "经验主义的",
+      "example_sentence": "Use empirical evidence.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-6",
+      "word": "fastidious",
+      "definition": "very attentive to detail",
+      "chinese_meaning": "挑剔的",
+      "example_sentence": "He is fastidious about food.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-7",
+      "word": "gregarious",
+      "definition": "fond of company and socializing",
+      "chinese_meaning": "爱社交的",
+      "example_sentence": "She is gregarious.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-8",
+      "word": "heuristic",
+      "definition": "enabling discovery or learning",
+      "chinese_meaning": "启发式的",
+      "example_sentence": "Use heuristic methods.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-9",
+      "word": "idiosyncratic",
+      "definition": "peculiar to an individual",
+      "chinese_meaning": "特有的",
+      "example_sentence": "His style is idiosyncratic.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-10",
+      "word": "juxtapose",
+      "definition": "to place side by side for contrast",
+      "chinese_meaning": "并列",
+      "example_sentence": "Juxtapose the two images.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-11",
+      "word": "kaleidoscope",
+      "definition": "a constantly changing pattern",
+      "chinese_meaning": "万花筒",
+      "example_sentence": "Life is like a kaleidoscope.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-12",
+      "word": "labyrinthine",
+      "definition": "complicated and tortuous",
+      "chinese_meaning": "迷宫似的",
+      "example_sentence": "The rules are labyrinthine.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-13",
+      "word": "meticulous",
+      "definition": "showing great attention to detail",
+      "chinese_meaning": "一丝不苟的",
+      "example_sentence": "Be meticulous in work.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-14",
+      "word": "nonchalant",
+      "definition": "casually calm and relaxed",
+      "chinese_meaning": "漠不关心的",
+      "example_sentence": "He seemed nonchalant.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-15",
+      "word": "obfuscate",
+      "definition": "to make unclear or confusing",
+      "chinese_meaning": "使模糊",
+      "example_sentence": "Don't obfuscate the issue.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-16",
+      "word": "paradigm",
+      "definition": "a typical example or pattern",
+      "chinese_meaning": "范式",
+      "example_sentence": "A new paradigm is needed.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-17",
+      "word": "querulous",
+      "definition": "complaining and whining",
+      "chinese_meaning": "抱怨的",
+      "example_sentence": "He became querulous.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-18",
+      "word": "recapitulate",
+      "definition": "to summarize and repeat",
+      "chinese_meaning": "重述",
+      "example_sentence": "Recapitulate the main points.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-19",
+      "word": "sycophant",
+      "definition": "a person who flatters for gain",
+      "chinese_meaning": "谄媚者",
+      "example_sentence": "Don't be a sycophant.",
+      "difficulty_level": 5
+    },
+    {
+      "id": "5-20",
+      "word": "zeitgeist",
+      "definition": "the spirit of the times",
+      "chinese_meaning": "时代精神",
+      "example_sentence": "Capture the zeitgeist.",
+      "difficulty_level": 5
+    }
+  ]
+}

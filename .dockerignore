@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+*.md
+ECDICT-master/ecdict.mini.csv
+ECDICT-master/README.md
+ECDICT-master/stardict.csv
