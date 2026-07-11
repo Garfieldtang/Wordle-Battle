@@ -1,0 +1,132 @@
+apiVersion: app.sealos.io/v1
+kind: Template
+metadata:
+  name: ${{ defaults.app_name }}
+spec:
+  title: 'Wordle Battle'
+  url: 'https://github.com/user/wordle-battle'
+  author: 'sealos'
+  description: 'Wordle Battle - 一个支持单人对战和双人对战的 Wordle 猜词游戏，包含实时匹配、WebSocket 对战、难度选择等功能。'
+  icon: 'https://img.icons8.com/emoji/96/game-die.png'
+  templateType: inline
+  defaults:
+    app_name:
+      type: string
+      value: wordle-battle-${{ random(8) }}
+    app_host:
+      type: string
+      value: ${{ random(8) }}
+  inputs:
+    image:
+      description: 'Docker 镜像地址（例如：yourname/wordle-battle:latest）'
+      type: string
+      default: 'yourname/wordle-battle:latest'
+      required: true
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ${{ defaults.app_name }}
+  labels:
+    app: ${{ defaults.app_name }}
+    cloud.sealos.io/app-deploy-manager: ${{ defaults.app_name }}
+spec:
+  serviceName: ${{ defaults.app_name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${{ defaults.app_name }}
+  template:
+    metadata:
+      labels:
+        app: ${{ defaults.app_name }}
+    spec:
+      containers:
+        - name: ${{ defaults.app_name }}
+          image: ${{ inputs.image }}
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${{ defaults.app_name }}
+  labels:
+    app: ${{ defaults.app_name }}
+    cloud.sealos.io/app-deploy-manager: ${{ defaults.app_name }}
+spec:
+  selector:
+    app: ${{ defaults.app_name }}
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${{ defaults.app_name }}
+  labels:
+    app: ${{ defaults.app_name }}
+    cloud.sealos.io/app-deploy-manager: ${{ defaults.app_name }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: sealos-cloud
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: ${{ defaults.app_name }}
+spec:
+  tls:
+    - hosts:
+        - ${{ defaults.app_host }}.${{ SEALOS_NAMESPACE }}.hzh.sealos.run
+      secretName: ${{ defaults.app_name }}-tls
+  rules:
+    - host: ${{ defaults.app_host }}.${{ SEALOS_NAMESPACE }}.hzh.sealos.run
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${{ defaults.app_name }}
+                port:
+                  number: 80
+---
+apiVersion: app.sealos.io/v1
+kind: App
+metadata:
+  name: ${{ defaults.app_name }}
+  labels:
+    cloud.sealos.io/app-deploy-manager: ${{ defaults.app_name }}
+spec:
+  appName: ${{ defaults.app_name }}
+  user:
+    appName: ${{ defaults.app_name }}
+    namespace: ${{ SEALOS_NAMESPACE }}
+    userId: ${{ SEALOS_USER_ID }}
+  displayState:
+    icon: 'https://img.icons8.com/emoji/96/game-die.png'
+    name: Wordle Battle
+    description: 'Wordle Battle - 对战猜词游戏'
