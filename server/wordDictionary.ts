@@ -25,6 +25,8 @@ interface WordEntry {
 }
 
 let allWords: WordEntry[] = [];
+let wordSet: Set<string> = new Set();
+let wordMap: Map<string, WordEntry> = new Map();
 let wordsByLevel: Map<number, WordEntry[]> = new Map();
 let isLoaded = false;
 
@@ -113,6 +115,8 @@ export const loadDictionary = (): Promise<void> => {
         }
 
         allWords.push(entry);
+        wordSet.add(entry.word);
+        wordMap.set(entry.word, entry);
 
         const levels = classifyWord(entry);
         levels.forEach(level => {
@@ -145,13 +149,13 @@ export const loadDictionary = (): Promise<void> => {
 export const isValidWord = (word: string): boolean => {
   if (!isLoaded) return false;
   const lowerWord = word.toLowerCase().trim();
-  return allWords.some(entry => entry.word === lowerWord);
+  return wordSet.has(lowerWord);
 };
 
 export const getWordInfo = (word: string): WordEntry | undefined => {
   if (!isLoaded) return undefined;
   const lowerWord = word.toLowerCase().trim();
-  return allWords.find(entry => entry.word === lowerWord);
+  return wordMap.get(lowerWord);
 };
 
 export const getRandomWord = (level: number, minLength = 4, maxLength = 8): string => {
@@ -213,7 +217,7 @@ export const getRandomWords = (
   return result;
 };
 
-export const getRandomFirstGuess = (level: number, wordLength: number): string => {
+export const getRandomFirstGuess = (level: number, wordLength: number, excludeWord?: string): string => {
   if (!isLoaded) {
     throw new Error('词典尚未加载');
   }
@@ -230,19 +234,21 @@ export const getRandomFirstGuess = (level: number, wordLength: number): string =
   const levelWords = wordsByLevel.get(level) || allWords;
   const levelWordSet = new Set(levelWords.map(e => e.word));
 
-  const matched = commonStarters.filter(w => w.length === wordLength && levelWordSet.has(w));
+  const matched = commonStarters.filter(w =>
+    w.length === wordLength && levelWordSet.has(w) && w !== excludeWord
+  );
   if (matched.length > 0) {
     return matched[Math.floor(Math.random() * matched.length)];
   }
 
   // 从该等级词库中随机挑选一个相同长度的单词
-  const pool = levelWords.filter(e => e.word.length === wordLength);
+  const pool = levelWords.filter(e => e.word.length === wordLength && e.word !== excludeWord);
   if (pool.length > 0) {
     return pool[Math.floor(Math.random() * pool.length)].word;
   }
 
   // 兜底：从全词库中找
-  const fallback = allWords.filter(e => e.word.length === wordLength);
+  const fallback = allWords.filter(e => e.word.length === wordLength && e.word !== excludeWord);
   if (fallback.length > 0) {
     return fallback[Math.floor(Math.random() * fallback.length)].word;
   }

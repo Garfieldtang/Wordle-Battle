@@ -117,13 +117,6 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className="bg-gray-700 rounded-lg p-4 text-center">
-                <div className="text-3xl font-bold text-purple-400">
-                  {Math.floor(stats.averageTime / 60)}:{Math.floor(stats.averageTime % 60).toString().padStart(2, '0')}
-                </div>
-                <div className="text-gray-400 mt-1">平均用时</div>
-              </div>
-
-              <div className="bg-gray-700 rounded-lg p-4 text-center">
                 <div className="text-3xl font-bold text-orange-400">{stats.averageGuesses.toFixed(1)}</div>
                 <div className="text-gray-400 mt-1">平均猜测次数</div>
               </div>

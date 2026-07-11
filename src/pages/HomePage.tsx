@@ -279,9 +279,9 @@ export const HomePage: React.FC = () => {
             <p className="text-gray-400 text-lg">
               正在为你寻找对手（难度等级 {selectedLevel}）
             </p>
-            {roomCode && (
+            {roomCode && battleState === 'matching' && (
               <div className="bg-gray-800 rounded-lg px-6 py-4 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-1">房间号（分享给好友）</p>
+                <p className="text-sm text-gray-400 mb-1">房间号（分享给好友加入）</p>
                 <p className="text-3xl font-bold text-orange-500 tracking-widest text-center">
                   {roomCode}
                 </p>

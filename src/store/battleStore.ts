@@ -66,11 +66,6 @@ const prefilledGridWithFirstGuess = (
 ): { grid: GridCell[][]; statuses: LetterStatus[] } => {
   const grid = createEmptyGrid(wordLength);
   const statuses = checkGuess(firstGuess, targetWord);
-  grid[0] = firstGuess.split('').map((letter) => ({
-    letter: letter.toUpperCase(),
-    status: statuses[letter ? 0 : 0] || 'absent'
-  }));
-  // 正确设置每个字母的状态
   grid[0] = firstGuess.split('').map((letter, j) => ({
     letter: letter.toUpperCase(),
     status: statuses[j]
@@ -115,6 +110,7 @@ interface BattleStore {
   isShaking: boolean;
   invalidMessage: string;
   isWordWon: boolean;
+  isWordDone: boolean;
   socket: Socket | null;
   targetWords: string[];
   myFinished: boolean;
@@ -130,7 +126,7 @@ interface BattleStore {
   submitGuess: () => Promise<void>;
   resetBattle: () => void;
   clearShake: () => void;
-  clearWordWon: () => void;
+  clearWordDone: () => void;
   disconnectSocket: () => void;
 }
 
@@ -169,7 +165,7 @@ const setupSocketListeners = (socket: Socket, set: any, get: any) => {
       myGrid: grid,
       myGuesses: [firstGuess.toLowerCase()],
       currentGuess: '',
-      opponentGuessCount: 0,
+      opponentGuessCount: 1,
       opponentFinished: false,
       opponentWon: false,
       opponentAllDone: false,
@@ -179,7 +175,8 @@ const setupSocketListeners = (socket: Socket, set: any, get: any) => {
       myFinished: false,
       isShaking: false,
       invalidMessage: '',
-      isWordWon: false
+      isWordWon: false,
+      isWordDone: false
     });
   });
 
@@ -262,6 +259,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   isShaking: false,
   invalidMessage: '',
   isWordWon: false,
+  isWordDone: false,
   socket: null,
   targetWords: [],
   myFinished: false,
@@ -344,7 +342,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
 
   addLetter: (letter: string) => {
     const state = get();
-    if (state.battleState !== 'playing' || state.isGameOver || state.myFinished || state.isWordWon) return;
+    if (state.battleState !== 'playing' || state.isGameOver || state.myFinished || state.isWordDone) return;
     const currentWordLength = state.words[state.currentWordIndex]?.length || 5;
     if (state.currentGuess.length >= currentWordLength) return;
     set({
@@ -356,7 +354,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
 
   removeLetter: () => {
     const state = get();
-    if (state.battleState !== 'playing' || state.isGameOver || state.myFinished || state.isWordWon) return;
+    if (state.battleState !== 'playing' || state.isGameOver || state.myFinished || state.isWordDone) return;
     if (state.currentGuess.length === 0) return;
     set({
       currentGuess: state.currentGuess.slice(0, -1),
@@ -367,7 +365,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
 
   submitGuess: async () => {
     const state = get();
-    if (state.battleState !== 'playing' || state.isGameOver || state.myFinished || state.isWordWon) return;
+    if (state.battleState !== 'playing' || state.isGameOver || state.myFinished || state.isWordDone) return;
 
     const guess = state.currentGuess;
     const currentWordLength = state.words[state.currentWordIndex]?.length || 5;
@@ -386,7 +384,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
 
     // 异步操作后重新获取状态
     const currentState = get();
-    if (currentState.battleState !== 'playing' || currentState.isGameOver || currentState.myFinished || currentState.isWordWon) {
+    if (currentState.battleState !== 'playing' || currentState.isGameOver || currentState.myFinished || currentState.isWordDone) {
       return;
     }
 
@@ -417,7 +415,8 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       currentGuess: '',
       isShaking: false,
       invalidMessage: '',
-      isWordWon: isWon
+      isWordWon: isWon,
+      isWordDone: isWordDone
     });
 
     // 通过 Socket.io 发送猜测给服务器
@@ -460,15 +459,14 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
     set({ isShaking: false, invalidMessage: '' });
   },
 
-  clearWordWon: () => {
+  clearWordDone: () => {
     const state = get();
-    // 只有当前单词猜对了，才进入下一个单词
-    if (!state.isWordWon) return;
+    if (!state.isWordDone) return;
 
     const isAllWordsDone = state.currentWordIndex >= 2;
 
     if (isAllWordsDone) {
-      set({ isWordWon: false });
+      set({ isWordWon: false, isWordDone: false });
       return;
     }
 
@@ -488,10 +486,11 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       myGrid: nextGrid,
       myGuesses: [nextFirstGuess.toLowerCase()],
       currentGuess: '',
-      opponentGuessCount: 0,
+      opponentGuessCount: 1,
       opponentFinished: false,
       opponentWon: false,
-      isWordWon: false
+      isWordWon: false,
+      isWordDone: false
     });
   },
 
@@ -522,6 +521,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       isShaking: false,
       invalidMessage: '',
       isWordWon: false,
+      isWordDone: false,
       socket: null,
       targetWords: [],
       myFinished: false,

@@ -43,7 +43,7 @@ const getScoreForGuesses = (guessCount: number, isWon: boolean): number => {
 };
 
 const generateSharedFirstGuesses = (difficultyLevel: number, targetWords: string[]): string[] => {
-  return targetWords.map(word => getRandomFirstGuess(difficultyLevel, word.length));
+  return targetWords.map(word => getRandomFirstGuess(difficultyLevel, word.length, word));
 };
 
 const createBattleRoom = (
@@ -125,8 +125,7 @@ export const handleMatchRequest = (
     difficultyLevel
   };
 
-  const roomCode = generateRoomCode();
-  socket.emit('match:waiting', { roomCode });
+  socket.emit('match:waiting', {});
 
   const queue = matchingQueue.get(difficultyLevel) || [];
   queue.push(player);
@@ -320,7 +319,14 @@ export const handleDisconnect = (socket: Socket) => {
   if (room) {
     const remainingPlayer = room.players.find(p => p.id !== socket.id);
     if (remainingPlayer) {
-      remainingPlayer.socket.emit('error', { message: '对手已断开连接' });
+      const myScore = room.scores[remainingPlayer.id] || 0;
+      const opponentScore = room.scores[socket.id] || 0;
+      remainingPlayer.socket.emit('battle:finish', {
+        myScore,
+        opponentScore,
+        won: true
+      });
+      remainingPlayer.socket.emit('error', { message: '对手已断开连接，本场判定为胜' });
     }
     rooms.delete(room.roomCode);
     console.log(`[对战] 玩家断开，房间 ${room.roomCode} 已解散`);

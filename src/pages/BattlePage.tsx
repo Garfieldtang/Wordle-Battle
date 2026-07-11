@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBattleStore } from '../store/battleStore';
 import { useUserStore } from '../store/userStore';
@@ -8,6 +8,7 @@ import { ArrowLeft, Swords, Trophy, Loader2, Users, Zap, CheckCircle2 } from 'lu
 
 export const BattlePage: React.FC = () => {
   const navigate = useNavigate();
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const { userData } = useUserStore();
   const {
     battleState,
@@ -16,6 +17,7 @@ export const BattlePage: React.FC = () => {
     difficultyLevel,
     words,
     sharedFirstGuesses,
+    targetWords,
     currentWordIndex,
     myScore,
     opponentScore,
@@ -31,6 +33,7 @@ export const BattlePage: React.FC = () => {
     isShaking,
     invalidMessage,
     isWordWon,
+    isWordDone,
     myFinished,
     opponentWordIndex,
     errorMessage,
@@ -38,7 +41,7 @@ export const BattlePage: React.FC = () => {
     removeLetter,
     submitGuess,
     clearShake,
-    clearWordWon,
+    clearWordDone,
     resetBattle,
     disconnectSocket
   } = useBattleStore();
@@ -56,15 +59,15 @@ export const BattlePage: React.FC = () => {
     }
   }, [isShaking, clearShake]);
 
-  // 猜对单词后，2秒后自动进入下一个单词
+  // 单词完成后（猜对或猜错），2秒后自动进入下一个单词
   useEffect(() => {
-    if (isWordWon) {
+    if (isWordDone) {
       const timer = setTimeout(() => {
-        clearWordWon();
+        clearWordDone();
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [isWordWon, clearWordWon]);
+  }, [isWordDone, clearWordDone]);
 
   // 计算已使用的字母状态
   const usedLetters: Record<string, 'correct' | 'present' | 'absent'> = {};
@@ -85,7 +88,7 @@ export const BattlePage: React.FC = () => {
 
   // 键盘事件监听
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
-    if (battleState !== 'playing' || isGameOver || myFinished || isWordWon) return;
+    if (battleState !== 'playing' || isGameOver || myFinished || isWordDone) return;
 
     const key = event.key.toUpperCase();
     if (key === 'ENTER') {
@@ -95,7 +98,7 @@ export const BattlePage: React.FC = () => {
     } else if (/^[A-Z]$/.test(key)) {
       addLetter(key);
     }
-  }, [battleState, isGameOver, myFinished, isWordWon, submitGuess, removeLetter, addLetter]);
+  }, [battleState, isGameOver, myFinished, isWordDone, submitGuess, removeLetter, addLetter]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -105,9 +108,10 @@ export const BattlePage: React.FC = () => {
   // 当前单词信息
   const currentWordLength = words[currentWordIndex]?.length || 5;
   const currentFirstGuess = sharedFirstGuesses[currentWordIndex] || '';
+  const currentTargetWord = targetWords[currentWordIndex] || '';
   const isFirstLetterHint = currentWordLength >= 7;
   const firstLetterHint = isFirstLetterHint
-    ? currentFirstGuess[0]
+    ? currentTargetWord[0]
     : undefined;
 
   // 对手进度简化格子
@@ -216,7 +220,7 @@ export const BattlePage: React.FC = () => {
       <nav className="w-full bg-gray-800 border-b border-gray-700 py-3 px-6">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <button
-            onClick={() => handleBackHome()}
+            onClick={() => setShowExitConfirm(true)}
             className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -303,6 +307,15 @@ export const BattlePage: React.FC = () => {
             <div className="flex flex-col items-center gap-4 animate-bounce">
               <CheckCircle2 className="w-20 h-20 text-green-500 drop-shadow-lg" />
               <p className="text-3xl font-bold text-green-500 drop-shadow-lg">猜对了！</p>
+            </div>
+          </div>
+        )}
+
+        {/* 猜错单词提示 */}
+        {isWordDone && !isWordWon && (
+          <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+            <div className="flex flex-col items-center gap-4 animate-pulse">
+              <p className="text-2xl font-bold text-gray-400 drop-shadow-lg">未猜中，进入下一个单词...</p>
             </div>
           </div>
         )}
@@ -397,6 +410,32 @@ export const BattlePage: React.FC = () => {
           usedLetters={usedLetters}
         />
       </main>
+
+      {/* 退出对战确认弹窗 */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 max-w-sm w-full mx-4">
+            <h3 className="text-xl font-bold text-white mb-3">确认退出对战？</h3>
+            <p className="text-gray-400 text-sm mb-6">
+              退出后将判定为本场对战失败，确定要离开吗？
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+              >
+                继续对战
+              </button>
+              <button
+                onClick={() => handleBackHome()}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors font-medium"
+              >
+                退出
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
