@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视差 / Parallax — 认知破茧工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --washi: #F5F1E8;
+    --washi-deep: #EDE7D9;
+    --sumi: #2C2A26;
+    --sumi-soft: #4A4740;
+    --sumi-faint: #8A8578;
+    --akane: #A65D4F;
+    --matcha: #6B7B5A;
+    --kincha: #B8860B;
+    --line: #D4CDC0;
+    --shadow: rgba(44, 42, 38, 0.08);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background-color: var(--washi);
+    color: var(--sumi);
+    line-height: 1.8;
+    font-weight: 300;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background: 
+      radial-gradient(ellipse at 20% 30%, rgba(166, 93, 79, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(107, 123, 90, 0.03) 0%, transparent 50%);
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 40px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Hero Section */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 40px;
+    position: relative;
+  }
+
+  .hero-tag {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    color: var(--sumi-faint);
+    letter-spacing: 0.4em;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 0.2s forwards;
+  }
+
+  .hero-title-jp {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 6rem;
+    font-weight: 400;
+    color: var(--sumi);
+    letter-spacing: 0.3em;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 0.4s forwards;
+    position: relative;
+  }
+
+  .hero-title-en {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--sumi-soft);
+    letter-spacing: 0.5em;
+    margin-bottom: 60px;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 0.6s forwards;
+  }
+
+  .hero-divider {
+    width: 1px;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--sumi-faint), transparent);
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeIn 1.5s ease-out 0.8s forwards;
+  }
+
+  .hero-subtitle {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    color: var(--sumi-soft);
+    max-width: 500px;
+    line-height: 2;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 1s forwards;
+  }
+
+  .hero-subtitle em {
+    font-style: normal;
+    color: var(--akane);
+    font-weight: 400;
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: fadeIn 1.5s ease-out 1.5s forwards;
+  }
+
+  .scroll-indicator span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--sumi-faint);
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: var(--sumi-faint);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--akane);
+    animation: scrollDown 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollDown {
+    0% { top: -100%; }
+    50% { top: 100%; }
+    100% { top: 100%; }
+  }
+
+  /* Section Base */
+  section {
+    padding: 120px 0;
+    position: relative;
+  }
+
+  .section-label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.8rem;
+    color: var(--akane);
+    letter-spacing: 0.3em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--akane);
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: var(--sumi);
+    margin-bottom: 60px;
+    line-height: 1.5;
+    letter-spacing: 0.05em;
+  }
+
+  .section-title .num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.9rem;
+    color: var(--sumi-faint);
+    font-weight: 300;
+    margin-right: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  /* Concept Section */
+  .concept-block {
+    margin-bottom: 50px;
+    padding-left: 30px;
+    border-left: 1px solid var(--line);
+    position: relative;
+  }
+
+  .concept-block::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0;
+    width: 7px;
+    height: 7px;
+    background: var(--akane);
+    border-radius: 50%;
+    opacity: 0.5;
+  }
+
+  .concept-label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.95rem;
+    color: var(--sumi-soft);
+    font-weight: 500;
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+  }
+
+  .concept-text {
+    font-size: 0.95rem;
+    color: var(--sumi-soft);
+    line-height: 2;
+  }
+
+  .concept-text strong {
+    font-weight: 500;
+    color: var(--sumi);
+  }
+
+  .highlight-box {
+    background: var(--washi-deep);
+    padding: 36px 40px;
+    margin: 40px 0;
+    position: relative;
+    border: 1px solid var(--line);
+  }
+
+  .highlight-box::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 4rem;
+    color: var(--akane);
+    opacity: 0.2;
+    line-height: 1;
+  }
+
+  .highlight-box p {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.05rem;
+    color: var(--sumi);
+    line-height: 2;
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  /* Core Idea - Two Paths */
+  .paths-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 40px;
+  }
+
+  .path-card {
+    background: var(--washi);
+    border: 1px solid var(--line);
+    padding: 40px 32px;
+    position: relative;
+    transition: all 0.4s ease;
+  }
+
+  .path-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px var(--shadow);
+  }
+
+  .path-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 24px;
+    opacity: 0.7;
+  }
+
+  .path-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--sumi);
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  .path-title span {
+    font-size: 0.8rem;
+    color: var(--sumi-faint);
+    margin-left: 12px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+  }
+
+  .path-desc {
+    font-size: 0.9rem;
+    color: var(--sumi-soft);
+    line-height: 2;
+  }
+
+  .path-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    background: var(--washi-deep);
+    color: var(--sumi-faint);
+    margin-top: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .path-card.vertical .path-tag {
+    color: var(--matcha);
+    background: rgba(107, 123, 90, 0.1);
+  }
+
+  .path-card.horizontal .path-tag {
+    color: var(--akane);
+    background: rgba(166, 93, 79, 0.1);
+  }
+
+  /* Flow Section */
+  .flow-steps {
+    position: relative;
+    padding: 20px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 50px;
+    position: relative;
+  }
+
+  .flow-step:last-child {
+    margin-bottom: 0;
+  }
+
+  .step-number {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem;
+    color: var(--sumi-faint);
+    background: var(--washi);
+    position: relative;
+    z-index: 2;
+  }
+
+  .flow-step.active .step-number {
+    border-color: var(--akane);
+    color: var(--akane);
+  }
+
+  .step-content {
+    flex: 1;
+    padding-top: 12px;
+  }
+
+  .step-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--sumi);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .step-desc {
+    font-size: 0.9rem;
+    color: var(--sumi-soft);
+    line-height: 1.9;
+  }
+
+  .flow-steps::before {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 70px;
+    bottom: 20px;
+    width: 1px;
+    background: var(--line);
+  }
+
+  /* Users Section */
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .user-card {
+    text-align: center;
+    padding: 32px 20px;
+    border: 1px solid var(--line);
+    background: var(--washi);
+    transition: all 0.3s ease;
+  }
+
+  .user-card:hover {
+    border-color: var(--akane);
+  }
+
+  .user-icon {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+
+  .user-label {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.95rem;
+    color: var(--sumi);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .pain-points {
+    list-style: none;
+  }
+
+  .pain-points li {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    font-size: 0.95rem;
+    color: var(--sumi-soft);
+    line-height: 1.8;
+  }
+
+  .pain-points li:first-child {
+    border-top: 1px solid var(--line);
+  }
+
+  .pain-dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--akane);
+    border-radius: 50%;
+    margin-top: 12px;
+    opacity: 0.5;
+  }
+
+  /* Value Section */
+  .value-section {
+    background: var(--washi-deep);
+    margin: 0 -100px;
+    padding: 120px 100px;
+  }
+
+  .value-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+  }
+
+  .value-col h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem;
+    color: var(--sumi);
+    font-weight: 500;
+    margin-bottom: 30px;
+    letter-spacing: 0.1em;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .value-col h3::before {
+    content: '';
+    width: 3px;
+    height: 18px;
+    background: var(--akane);
+    opacity: 0.6;
+  }
+
+  .value-item {
+    margin-bottom: 24px;
+  }
+
+  .value-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .value-item-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--sumi);
+    margin-bottom: 6px;
+  }
+
+  .value-item-desc {
+    font-size: 0.85rem;
+    color: var(--sumi-soft);
+    line-height: 1.9;
+  }
+
+  /* Scenarios */
+  .scenarios {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+  }
+
+  .scenario-item {
+    padding: 24px 28px;
+    background: var(--washi);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--matcha);
+    font-size: 0.9rem;
+    color: var(--sumi-soft);
+    line-height: 1.8;
+  }
+
+  .scenario-item strong {
+    display: block;
+    color: var(--sumi);
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 100px 0 80px;
+    position: relative;
+  }
+
+  .footer-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--line);
+    margin: 0 auto 40px;
+  }
+
+  .footer-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 2.5rem;
+    color: var(--sumi);
+    letter-spacing: 0.3em;
+    margin-bottom: 12px;
+  }
+
+  .footer-subtitle {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.9rem;
+    color: var(--sumi-faint);
+    letter-spacing: 0.3em;
+    margin-bottom: 40px;
+  }
+
+  .footer-quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.95rem;
+    color: var(--sumi-soft);
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 2;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .footer-tag {
+    margin-top: 60px;
+    font-size: 0.75rem;
+    color: var(--sumi-faint);
+    letter-spacing: 0.2em;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Decorative Elements */
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .deco-line {
+    position: absolute;
+    background: var(--line);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container {
+      padding: 0 24px;
+    }
+
+    .hero-title-jp {
+      font-size: 3.5rem;
+    }
+
+    .hero-title-en {
+      font-size: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+    }
+
+    .paths-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .users-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .value-section {
+      margin: 0 -24px;
+      padding: 80px 24px;
+    }
+
+    .value-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .scenarios {
+      grid-template-columns: 1fr;
+    }
+
+    .flow-step {
+      gap: 20px;
+    }
+
+    section {
+      padding: 80px 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-tag">— 认 知 破 茧 工 具 —</div>
+  <h1 class="hero-title-jp">视差</h1>
+  <div class="hero-title-en">P A R A L L A X</div>
+  <div class="hero-divider"></div>
+  <p class="hero-subtitle">
+    不靠蛮力破壁，只凭视角偏移<br>
+    <em>看见被遮蔽的，连接本不相关的</em>
+  </p>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- 01 创意起源 -->
+  <section class="reveal">
+    <div class="section-label">壹 · 起 源</div>
+    <h2 class="section-title"><span class="num">01</span>为什么是「视差」</h2>
+    
+    <div class="concept-block">
+      <div class="concept-label">名字的由来</div>
+      <p class="concept-text">
+        「视差」源于天文学概念——<strong>观察者位置移动导致同一物体在背景上产生视觉位移</strong>。
+        本产品取其隐喻：用户只需将认知观测点「平移一个思维模型的距离」，
+        那些被算法遮蔽的跨领域连接便会自然显现。
+      </p>
+    </div>
+
+    <div class="highlight-box">
+      <p>
+        茧房的恐怖之处在于「舒适」。与其让用户努力「走出去」，<br>
+        不如在他们现有的认知与兴趣基础上，<strong>轻轻挪动视角</strong>。
+      </p>
+    </div>
+
+    <div class="concept-block">
+      <div class="concept-label">想解决的问题</div>
+      <p class="concept-text">
+        算法推荐时代的<strong>「信息茧房」困局</strong>。用户被追求注意力与商业价值的算法困在低质、同质化的内容里，
+        认知边界不断收缩，却缺乏主动破圈的工具。
+      </p>
+    </div>
+
+    <div class="concept-block">
+      <div class="concept-label">产品形态</div>
+      <p class="concept-text">
+        基于 <strong>AI 对话</strong> 的认知破茧工具——通过苏格拉底式对话建立认知画像，
+        提供「垂直深潜」与「水平桥接」两种破茧路径。
+      </p>
+    </div>
+  </section>
+
+  <!-- 02 核心思路 -->
+  <section class="reveal">
+    <div class="section-label">贰 · 核 心</div>
+    <h2 class="section-title"><span class="num">02</span>两种破茧路径</h2>
+
+    <div class="paths-grid">
+      <div class="path-card vertical">
+        <svg class="path-icon" viewBox="0 0 48 48" fill="none" stroke="#6B7B5A" stroke-width="1.5">
+          <path d="M24 4 L24 44 M24 44 L16 36 M24 44 L32 36"/>
+          <circle cx="24" cy="12" r="3" fill="#6B7B5A" opacity="0.3"/>
+          <circle cx="24" cy="24" r="2" fill="#6B7B5A" opacity="0.2"/>
+        </svg>
+        <div class="path-title">垂直深潜 <span>Vertical</span></div>
+        <p class="path-desc">
+          在用户擅长领域内，向底层原理层与相关领域持续下探，
+          防止停留于浅层舒适区。从「知道是什么」到「理解为什么」。
+        </p>
+        <div class="path-tag">深度 · 原理 · 溯源</div>
+      </div>
+
+      <div class="path-card horizontal">
+        <svg class="path-icon" viewBox="0 0 48 48" fill="none" stroke="#A65D4F" stroke-width="1.5">
+          <path d="M4 24 L44 24 M44 24 L36 16 M44 24 L36 32"/>
+          <circle cx="12" cy="24" r="3" fill="#A65D4F" opacity="0.3"/>
+          <circle cx="24" cy="24" r="2" fill="#A65D4F" opacity="0.2"/>
+        </svg>
+        <div class="path-title">水平桥接 <span>Horizontal</span></div>
+        <p class="path-desc">
+          提取用户兴趣的底层思维模型（博弈型 / 结构型 / 叙事型），
+          推送逻辑相同但领域完全不同的跨界内容，实现认知平移。
+        </p>
+        <div class="path-tag">跨界 · 迁移 · 连接</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 使用流程 -->
+  <section class="reveal">
+    <div class="section-label">叁 · 流 程</div>
+    <h2 class="section-title"><span class="num">03</span>认知画像如何建立</h2>
+
+    <div class="flow-steps">
+      <div class="flow-step active">
+        <div class="step-number">一</div>
+        <div class="step-content">
+          <div class="step-title">预设领域标签</div>
+          <p class="step-desc">用户选择或输入自己感兴趣的领域方向，初步圈定认知范围。</p>
+        </div>
+      </div>
+      <div class="flow-step active">
+        <div class="step-number">二</div>
+        <div class="step-content">
+          <div class="step-title">苏格拉底式对话 · 三轮追问</div>
+          <p class="step-desc">AI 通过三轮递进式提问，深入理解用户的认知层级、思维偏好与深层兴趣。</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-number">三</div>
+        <div class="step-content">
+          <div class="step-title">生成认知画像</div>
+          <p class="step-desc">系统锁定 3-4 个核心标签及认知层级，构建专属的认知地图。</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-number">四</div>
+        <div class="step-content">
+          <div class="step-title">破茧推荐 · 反馈闭环</div>
+          <p class="step-desc">基于画像实时生成推荐内容，用户的「有用 / 无用」反馈持续优化后续推送。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- 用户与价值 -->
+<section class="value-section reveal">
+  <div class="container">
+    <div class="section-label">肆 · 用 户</div>
+    <h2 class="section-title"><span class="num">04</span>为谁而造</h2>
+
+    <div class="users-grid">
+      <div class="user-card">
+        <div class="user-icon">◐</div>
+        <div class="user-label">年轻内容消费者</div>
+      </div>
+      <div class="user-card">
+        <div class="user-icon">◑</div>
+        <div class="user-label">主动学习者</div>
+      </div>
+      <div class="user-card">
+        <div class="user-icon">◒</div>
+        <div class="user-label">创作者与学生</div>
+      </div>
+    </div>
+
+    <div class="scenarios">
+      <div class="scenario-item">
+        <strong>碎片化刷内容时</strong>
+        想从「被动投喂」切换到「主动探索」
+      </div>
+      <div class="scenario-item">
+        <strong>对某领域初步涉猎后</strong>
+        想往里深挖原理层与底层逻辑
+      </div>
+      <div class="scenario-item">
+        <strong>想跨出舒适区时</strong>
+        不知道「该往哪里跨」的迷茫时刻
+      </div>
+      <div class="scenario-item">
+        <strong>每周认知体检</strong>
+        花 5 分钟回顾最近关注什么、底层逻辑是什么
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- 痛点 -->
+  <section class="reveal">
+    <div class="section-label">伍 · 痛 点</div>
+    <h2 class="section-title"><span class="num">05</span>当前的困境</h2>
+
+    <ul class="pain-points">
+      <li>
+        <span class="pain-dot"></span>
+        <span>刷完大量内容后感到空虚，既浪费时间又无法形成系统认知，形成「越刷越焦虑」的恶性循环</span>
+      </li>
+      <li>
+        <span class="pain-dot"></span>
+        <span>困在算法推荐的同质化内容里，认知边界逐步固化，视野越来越窄</span>
+      </li>
+      <li>
+        <span class="pain-dot"></span>
+        <span>现行产品缺乏合理的个性化推荐，「破茧」方式割裂单一，唐突的随机推荐让人失去焦点</span>
+      </li>
+      <li>
+        <span class="pain-dot"></span>
+        <span>想拓宽视野却只能依赖随机搜索或他人推荐，效率极低，找不到方向</span>
+      </li>
+      <li>
+        <span class="pain-dot"></span>
+        <span>无法识别自己兴趣背后的「底层思维模型」，错失跨领域迁移学习的机会</span>
+      </li>
+    </ul>
+  </section>
+
+</div>
+
+<!-- 价值 -->
+<section class="value-section reveal">
+  <div class="container">
+    <div class="section-label">陆 · 价 值</div>
+    <h2 class="section-title"><span class="num">06</span>意义所在</h2>
+
+    <div class="value-grid">
+      <div class="value-col">
+        <h3>效率提升</h3>
+        <div class="value-item">
+          <div class="value-item-title">破圈效率</div>
+          <div class="value-item-desc">将用户自主摸索新领域的时间从「数小时搜索 + 试错」压缩至「数轮对话 + 即时推送」</div>
+        </div>
+        <div class="value-item">
+          <div class="value-item-title">认知密度</div>
+          <div class="value-item-desc">每条推荐都基于用户画像精准生成，避免无效信息轰炸，单位时间内有效认知摄入量提升</div>
+        </div>
+        <div class="value-item">
+          <div class="value-item-title">反馈闭环</div>
+          <div class="value-item-desc">用户对推荐内容的「有用 / 无用」反馈持续优化后续推送，越用越精准</div>
+        </div>
+      </div>
+
+      <div class="value-col">
+        <h3>社会价值</h3>
+        <div class="value-item">
+          <div class="value-item-title">对抗算法异化</div>
+          <div class="value-item-desc">在推荐算法主导信息分发的时代，提供一种「人主动选择认知方向」的替代方案</div>
+        </div>
+        <div class="value-item">
+          <div class="value-item-title">推动跨学科思维</div>
+          <div class="value-item-desc">通过「底层逻辑桥接」，帮助用户建立跨领域迁移能力——这是 AI 时代人类区别于机器的核心价值</div>
+        </div>
+        <div class="value-item">
+          <div class="value-item-title">降低认知不平等</div>
+          <div class="value-item-desc">让缺乏跨学科知识背景的普通用户，也能低成本获得「跨界连接」的认知体验</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-divider"></div>
+  <div class="footer-title">视 差</div>
+  <div class="footer-subtitle">P A R A L L A X</div>
+  <p class="footer-quote">
+    「平移一个思维模型的距离，<br>
+    看见被算法遮蔽的世界」
+  </p>
+  <div class="footer-tag">— TRAE AI 创造力大赛 · 学习工作赛道 —</div>
+</footer>
+
+<script>
+  // Scroll reveal animation
+  const revealElements = document.querySelectorAll('.reveal');
+  
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  revealElements.forEach(el => observer.observe(el));
+
+  // Flow step activation on scroll
+  const flowSteps = document.querySelectorAll('.flow-step');
+  
+  const flowObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+      }
+    });
+  }, { threshold: 0.5 });
+
+  flowSteps.forEach(step => flowObserver.observe(step));
+
+  // Subtle parallax effect on mouse move
+  document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 10;
+    const y = (e.clientY / window.innerHeight - 0.5) * 10;
+    
+    document.querySelector('.hero-title-jp').style.transform = 
+      `translate(${x * 0.5}px, ${y * 0.5}px)`;
+    document.querySelector('.hero-title-en').style.transform = 
+      `translate(${x * 0.3}px, ${y * 0.3}px)`;
+  });
+</script>
+
+</body>
+</html>
