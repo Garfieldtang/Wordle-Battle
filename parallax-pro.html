@@ -3,74 +3,254 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>视差 PARALLAX - Change your angle, change your world.</title>
+<title>视差 Parallax — Change your angle, change your world</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --deep-space: #0A0E17;
+    --space-mid: #111827;
+    --space-light: #1E293B;
     --glow-cyan: #22D3EE;
     --glow-violet: #A78BFA;
     --glow-amber: #FBBF24;
     --glow-rose: #FB7185;
-    --glow-mint: #6EE7B7;
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-bg-strong: rgba(255, 255, 255, 0.08);
-    --font-title: 'Orbitron', sans-serif;
-    --font-ui: 'Space Grotesk', 'Inter', sans-serif;
-    --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
   }
 
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body {
-    font-family: var(--font-body);
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
     background: var(--deep-space);
-    color: #fff;
-    overflow-x: hidden;
+    color: var(--text-primary);
     line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
+    font-weight: 300;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
   }
 
-  #starCanvas {
+  /* Starfield background */
+  .starfield {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .starfield canvas {
+    display: block;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    pointer-events: none;
   }
 
-  .content-wrapper {
-    position: relative;
+  /* Scroll hint / easter egg teaser */
+  .scroll-hint {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+    z-index: 2;
+  }
+
+  .scroll-hint-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .scroll-hint-text .highlight {
+    color: var(--glow-amber);
+    font-weight: 500;
+  }
+
+  .scroll-hint-arrow {
+    width: 24px;
+    height: 24px;
+    border-right: 1.5px solid var(--glow-cyan);
+    border-bottom: 1.5px solid var(--glow-cyan);
+    transform: rotate(45deg);
+    animation: scrollBounce 2s ease-in-out infinite;
+    opacity: 0.7;
+  }
+
+  @keyframes scrollBounce {
+    0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: 0.7; }
+    50% { transform: rotate(45deg) translate(6px, 6px); opacity: 1; }
+  }
+
+  /* Footer reveal text for wow moment */
+  .footer-wow {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 5;
+    white-space: nowrap;
+  }
+
+  .footer-wow.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .footer-wow .wow-line-1 {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    letter-spacing: 0.3em;
+    color: rgba(200, 215, 230, 0.9);
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(200, 215, 230, 0.5), 0 0 40px rgba(100, 150, 200, 0.3);
+  }
+
+  .footer-wow .wow-line-2 {
+    font-family: 'Orbitron', 'Noto Sans SC', sans-serif;
+    font-size: clamp(1.5rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(34, 211, 238, 0.3)) drop-shadow(0 0 60px rgba(167, 139, 250, 0.2));
+  }
+
+  .footer-wow .wow-line-3 {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: clamp(0.75rem, 1.3vw, 1rem);
+    letter-spacing: 0.4em;
+    color: rgba(200, 215, 230, 0.8);
+    margin-top: 12px;
+    text-shadow: 0 0 15px rgba(200, 215, 230, 0.4);
+  }
+
+  .footer-wow .wow-slogan {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: clamp(0.8rem, 1.6vw, 1.05rem);
+    letter-spacing: 0.15em;
+    color: rgba(220, 230, 240, 0.85);
+    margin-top: 28px;
+    padding: 12px 28px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    text-shadow: 0 0 15px rgba(200, 215, 230, 0.4);
+    display: inline-block;
+  }
+
+  /* Parallax depth layers */
+  .depth-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
     z-index: 1;
   }
 
-  /* Nav */
-  .nav {
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+  }
+
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--glow-violet), transparent 70%);
+    top: -10%; left: -10%;
+    animation: float1 20s ease-in-out infinite;
+  }
+
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, var(--glow-cyan), transparent 70%);
+    top: 40%; right: -5%;
+    animation: float2 25s ease-in-out infinite;
+  }
+
+  .orb-3 {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, var(--glow-amber), transparent 70%);
+    bottom: 10%; left: 30%;
+    animation: float3 22s ease-in-out infinite;
+  }
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(60px, 40px); }
+    66% { transform: translate(-30px, 60px); }
+  }
+
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(-40px, -50px); }
+    66% { transform: translate(30px, -30px); }
+  }
+
+  @keyframes float3 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(50px, -30px); }
+    66% { transform: translate(-40px, -50px); }
+  }
+
+  /* Grid lines */
+  .grid-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    background-image: 
+      linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+    perspective: 1000px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 48px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    padding: 24px 48px;
     z-index: 100;
-    padding: 16px 40px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    background: rgba(10, 14, 23, 0.6);
+    background: rgba(10, 14, 23, 0.5);
     border-bottom: 1px solid var(--glass-border);
   }
 
@@ -78,1675 +258,2010 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    font-family: var(--font-title);
-    font-weight: 700;
-    font-size: 18px;
-    letter-spacing: 4px;
   }
 
-  .nav-logo-lines {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  .nav-logo-mark {
+    width: 32px; height: 32px;
+    position: relative;
   }
 
-  .nav-logo-lines span {
-    display: block;
-    height: 2px;
+  .nav-logo-mark::before,
+  .nav-logo-mark::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 24px; height: 2px;
     background: linear-gradient(90deg, var(--glow-cyan), var(--glow-violet));
-    border-radius: 2px;
+    transform: translateY(-50%);
   }
 
-  .nav-logo-lines span:nth-child(1) { width: 24px; }
-  .nav-logo-lines span:nth-child(2) { width: 16px; margin-left: 8px; }
+  .nav-logo-mark::before { left: 0; opacity: 0.5; transform: translateY(calc(-50% - 4px)); }
+  .nav-logo-mark::after { left: 4px; opacity: 1; transform: translateY(calc(-50% + 4px)); }
+
+  .nav-logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
 
   .nav-links {
     display: flex;
-    align-items: center;
-    gap: 32px;
+    gap: 28px;
     list-style: none;
   }
 
   .nav-links a {
-    font-family: var(--font-ui);
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
     text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    transition: color 0.3s ease;
   }
 
   .nav-links a:hover {
-    color: #fff;
+    color: var(--glow-cyan);
   }
-
-  .nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: var(--glow-cyan);
-    transition: width 0.3s ease;
-  }
-
-  .nav-links a:hover::after {
-    width: 100%;
-  }
-
-  .nav-demo {
-    padding: 8px 20px;
-    border: 1px solid var(--glow-cyan);
-    border-radius: 100px;
-    color: var(--glow-cyan) !important;
-    font-weight: 500;
-    transition: all 0.3s ease !important;
-  }
-
-  .nav-demo:hover {
-    background: rgba(34, 211, 238, 0.1);
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
-  }
-
-  .nav-demo::after { display: none !important; }
 
   .nav-author {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
+    flex-direction: column;
+    align-items: flex-end;
+    padding-left: 24px;
+    border-left: 1px solid var(--glass-border);
+    font-family: 'Space Grotesk', sans-serif;
+    pointer-events: none;
   }
 
-  .nav-author-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--glow-violet), var(--glow-cyan));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-title);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--deep-space);
+  .nav-author .nav-author-name {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: rgba(148, 163, 184, 0.55);
   }
 
-  .nav-author-text span {
-    display: block;
+  .nav-author .nav-author-track {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    color: rgba(100, 116, 139, 0.4);
+    margin-top: 3px;
   }
 
-  .nav-author-text .name {
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 500;
-  }
-
-  .nav-author-text .event {
-    font-size: 10px;
-    color: var(--glow-amber);
-  }
-
-  /* Hero */
+  /* HERO */
   .hero {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    position: relative;
-    padding: 100px 40px 80px;
-    text-align: center;
-  }
-
-  .hero-subtitle {
-    font-family: var(--font-title);
-    font-size: 14px;
-    letter-spacing: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    margin-bottom: 24px;
-    font-weight: 500;
-  }
-
-  .hero-title {
-    font-family: var(--font-title);
-    font-size: clamp(80px, 18vw, 220px);
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 32px;
-    background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.3));
-    letter-spacing: 8px;
-  }
-
-  .hero-slogan {
-    display: inline-flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 16px 40px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: 100px;
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.2em;
+    margin-bottom: 48px;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
   }
 
-  .hero-slogan-en {
-    font-family: var(--font-ui);
-    font-weight: 500;
-    letter-spacing: 1px;
-  }
-
-  .hero-slogan-zh {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
-    letter-spacing: 2px;
-  }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--font-ui);
-    font-size: 12px;
-    letter-spacing: 4px;
-    color: rgba(255, 255, 255, 0.4);
-    animation: float 2s ease-in-out infinite;
-  }
-
-  .scroll-hint-arrow {
-    font-size: 20px;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(8px); }
-  }
-
-  .easter-egg-hint {
-    position: absolute;
-    bottom: 100px;
-    right: 40px;
-    font-size: 12px;
-    color: var(--glow-amber);
-    opacity: 0.7;
-    font-family: var(--font-ui);
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--glow-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--glow-cyan);
     animation: pulse 2s ease-in-out infinite;
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.8; }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
   }
 
-  /* Section Common */
-  .section {
-    min-height: 100vh;
-    padding: 120px 40px;
+  .hero-title-wrap {
+    position: relative;
+    margin-bottom: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* Orbital ring decoration */
+  .hero-orbit {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-orbit svg {
+    display: block;
+  }
+
+  .hero-orbit .orbit-ring {
+    fill: none;
+    stroke: rgba(34, 211, 238, 0.12);
+    stroke-width: 1;
+  }
+
+  .hero-orbit .orbit-ring-2 {
+    fill: none;
+    stroke: rgba(167, 139, 250, 0.1);
+    stroke-width: 1;
+    stroke-dasharray: 4 8;
+  }
+
+  .hero-orbit .orbit-dot {
+    fill: var(--glow-cyan);
+    filter: drop-shadow(0 0 6px var(--glow-cyan));
+    transform-origin: center;
+    animation: orbitSpin 12s linear infinite;
+  }
+
+  .hero-orbit .orbit-dot-2 {
+    fill: var(--glow-violet);
+    filter: drop-shadow(0 0 6px var(--glow-violet));
+    animation: orbitSpin2 16s linear infinite reverse;
+  }
+
+  @keyframes orbitSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes orbitSpin2 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', 'Noto Sans SC', sans-serif;
+    font-size: clamp(3.5rem, 11vw, 8rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    position: relative;
+    z-index: 3;
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+    display: flex;
+    align-items: center;
+    gap: 0.05em;
+  }
+
+  .hero-title .char {
+    display: inline-block;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .hero-title .gradient-text {
+    background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Parallax marker between the two characters */
+  .hero-title .parallax-marker {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 0.15em;
+    opacity: 0.8;
+  }
+
+  .parallax-marker .marker-line {
+    width: 2px;
+    height: 18px;
+    background: linear-gradient(to bottom, var(--glow-cyan), var(--glow-violet));
+    border-radius: 1px;
+  }
+
+  .parallax-marker .marker-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid var(--glow-cyan);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  .parallax-marker .marker-line.bottom {
+    background: linear-gradient(to bottom, var(--glow-violet), var(--glow-amber));
+  }
+
+  /* Ghost layer for parallax effect */
+  .hero-title .shift-2 {
+    display: inline-block;
+    transform: translateX(0);
+    opacity: 0.4;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    filter: blur(3px);
+    z-index: 1;
+    transition: transform 0.3s ease;
+  }
+
+  .hero-title .shift-2 .char {
+    background: linear-gradient(135deg, var(--glow-violet), var(--glow-rose));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle-en {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 0.5em;
+    color: var(--text-secondary);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+  }
+
+  .hero-desc {
+    max-width: 600px;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 2;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+  }
+
+  .hero-desc strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .hero-slogan {
+    margin-top: 40px;
+    padding: 24px 48px;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
+  }
+
+  .slogan-en {
+    display: block;
+    font-family: 'Space Grotesk', serif;
+    font-size: 1.3rem;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, var(--glow-cyan), var(--glow-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .slogan-cn {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    letter-spacing: 0.3em;
+  }
+
+  /* SECTION BASE */
+  section {
+    padding: 140px 0;
     position: relative;
   }
 
-  .section-inner {
-    max-width: 1200px;
-    width: 100%;
+  .section-header {
+    margin-bottom: 80px;
   }
 
-  .section-label {
-    font-family: var(--font-title);
-    font-size: 12px;
-    letter-spacing: 6px;
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
     color: var(--glow-cyan);
-    margin-bottom: 16px;
+    letter-spacing: 0.3em;
     text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .section-tag::before {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--glow-cyan), transparent);
   }
 
   .section-title {
-    font-family: var(--font-title);
-    font-size: clamp(32px, 5vw, 56px);
-    font-weight: 700;
-    margin-bottom: 24px;
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 600;
     line-height: 1.2;
-    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+    letter-spacing: -0.02em;
+  }
+
+  .section-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--glow-violet), var(--glow-cyan));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .section-desc {
-    font-size: 17px;
-    color: rgba(255, 255, 255, 0.6);
-    max-width: 640px;
-    line-height: 1.8;
+    margin-top: 20px;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.9;
   }
 
-  /* Glass Card */
-  .glass-card {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  /* CONCEPT SECTION */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+  }
+
+  .concept-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
-    padding: 40px;
+    padding: 40px 32px;
+    backdrop-filter: blur(20px);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
   }
 
-  .glass-card::before {
+  .concept-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  }
-
-  /* Concept Section */
-  .concept-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    align-items: center;
-  }
-
-  .concept-visual {
-    position: relative;
-    height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .concept-circle {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    position: relative;
-    animation: rotate 30s linear infinite;
-  }
-
-  .concept-circle::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--glow-cyan) 0%, transparent 70%);
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  @keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  }
-
-  .concept-dot {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--glow-violet);
-    box-shadow: 0 0 20px var(--glow-violet);
-  }
-
-  .concept-dot:nth-child(1) { top: -6px; left: 50%; transform: translateX(-50%); }
-  .concept-dot:nth-child(2) { bottom: -6px; left: 50%; transform: translateX(-50%); background: var(--glow-amber); box-shadow: 0 0 20px var(--glow-amber); }
-  .concept-dot:nth-child(3) { left: -6px; top: 50%; transform: translateY(-50%); background: var(--glow-rose); box-shadow: 0 0 20px var(--glow-rose); }
-  .concept-dot:nth-child(4) { right: -6px; top: 50%; transform: translateY(-50%); background: var(--glow-mint); box-shadow: 0 0 20px var(--glow-mint); }
-
-  .concept-line {
-    position: absolute;
-    width: 150px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--glow-cyan), transparent);
-    top: 50%;
-    transform-origin: left center;
-  }
-
-  .concept-line:nth-child(5) { transform: translateY(-50%) rotate(30deg); left: calc(50% + 100px); }
-  .concept-line:nth-child(6) { transform: translateY(-50%) rotate(-30deg); left: calc(50% + 100px); background: linear-gradient(90deg, var(--glow-violet), transparent); }
-
-  .concept-highlight {
-    color: var(--glow-cyan);
-    font-weight: 600;
-  }
-
-  /* Path Section */
-  .paths-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-top: 48px;
-  }
-
-  .path-card {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 36px;
-    transition: all 0.4s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .path-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.2);
-    background: var(--glass-bg-strong);
-  }
-
-  .path-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-  }
-
-  .path-card.vertical::before {
-    background: linear-gradient(180deg, var(--glow-cyan), var(--glow-violet));
-  }
-
-  .path-card.horizontal::before {
-    background: linear-gradient(180deg, var(--glow-amber), var(--glow-rose));
-  }
-
-  .path-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
-
-  .path-card.vertical .path-icon {
-    background: rgba(34, 211, 238, 0.15);
-    color: var(--glow-cyan);
-  }
-
-  .path-card.horizontal .path-icon {
-    background: rgba(251, 191, 36, 0.15);
-    color: var(--glow-amber);
-  }
-
-  .path-title {
-    font-family: var(--font-title);
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-
-  .path-desc {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 15px;
-    line-height: 1.7;
-  }
-
-  .path-features {
-    list-style: none;
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .path-features li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .path-features li::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .path-card.vertical .path-features li::before {
-    background: var(--glow-cyan);
-    box-shadow: 0 0 8px var(--glow-cyan);
-  }
-
-  .path-card.horizontal .path-features li::before {
-    background: var(--glow-amber);
-    box-shadow: 0 0 8px var(--glow-amber);
-  }
-
-  /* Dialogue Section */
-  .dialogue-container {
-    margin-top: 48px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .dialogue-round {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 28px 32px;
-    transition: all 0.3s ease;
-  }
-
-  .dialogue-round:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .dialogue-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .dialogue-number {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--glow-violet), var(--glow-cyan));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-title);
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--deep-space);
-    flex-shrink: 0;
-  }
-
-  .dialogue-label {
-    font-family: var(--font-ui);
-    font-size: 13px;
-    color: var(--glow-cyan);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .dialogue-question {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: #fff;
-  }
-
-  .dialogue-answer {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.6);
-    padding-left: 48px;
-    position: relative;
-  }
-
-  .dialogue-answer::before {
-    content: '→';
-    position: absolute;
-    left: 24px;
-    color: var(--glow-amber);
-  }
-
-  /* Users Section */
-  .users-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    margin-top: 48px;
-  }
-
-  .user-card {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 32px;
-    text-align: center;
-    transition: all 0.4s ease;
-  }
-
-  .user-card:hover {
-    transform: translateY(-6px);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .user-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    margin: 0 auto 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-  }
-
-  .user-card:nth-child(1) .user-avatar { background: rgba(34, 211, 238, 0.15); }
-  .user-card:nth-child(2) .user-avatar { background: rgba(167, 139, 250, 0.15); }
-  .user-card:nth-child(3) .user-avatar { background: rgba(251, 191, 36, 0.15); }
-
-  .user-name {
-    font-family: var(--font-title);
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .user-tag {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 100px;
-    font-size: 12px;
-    margin-bottom: 16px;
-    font-family: var(--font-ui);
-  }
-
-  .user-card:nth-child(1) .user-tag { background: rgba(34, 211, 238, 0.1); color: var(--glow-cyan); }
-  .user-card:nth-child(2) .user-tag { background: rgba(167, 139, 250, 0.1); color: var(--glow-violet); }
-  .user-card:nth-child(3) .user-tag { background: rgba(251, 191, 36, 0.1); color: var(--glow-amber); }
-
-  .user-desc {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-    line-height: 1.7;
-  }
-
-  .user-pain {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--glass-border);
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  /* Value Section */
-  .value-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    margin-top: 48px;
-  }
-
-  .value-item {
-    display: flex;
-    gap: 20px;
-    padding: 24px;
-    border-radius: 16px;
-    transition: all 0.3s ease;
-  }
-
-  .value-item:hover {
-    background: var(--glass-bg);
-  }
-
-  .value-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-
-  .value-item:nth-child(1) .value-icon { background: rgba(34, 211, 238, 0.15); color: var(--glow-cyan); }
-  .value-item:nth-child(2) .value-icon { background: rgba(167, 139, 250, 0.15); color: var(--glow-violet); }
-  .value-item:nth-child(3) .value-icon { background: rgba(251, 191, 36, 0.15); color: var(--glow-amber); }
-  .value-item:nth-child(4) .value-icon { background: rgba(110, 231, 183, 0.15); color: var(--glow-mint); }
-
-  .value-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .value-desc {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
-    line-height: 1.7;
-  }
-
-  .name-origin {
-    margin-top: 48px;
-    padding: 32px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .name-origin::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(167, 139, 250, 0.1) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .name-origin-title {
-    font-family: var(--font-title);
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .name-origin-title span {
-    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .name-origin-text {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 15px;
-    line-height: 1.8;
-  }
-
-  /* Easter Egg Section */
-  .easter-egg-section {
-    height: 100vh;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    overflow: hidden;
-  }
-
-  .easter-egg-content {
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.05), transparent 50%);
     opacity: 0;
-    transform: translateY(40px);
-    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s ease;
+  }
+
+  .concept-card:hover {
+    border-color: rgba(34, 211, 238, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .concept-card:hover::before {
+    opacity: 1;
+  }
+
+  .concept-card.large { grid-column: span 7; }
+  .concept-card.small { grid-column: span 5; }
+  .concept-card.full { grid-column: span 12; }
+
+  .concept-icon {
+    width: 56px; height: 56px;
+    margin-bottom: 28px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
     position: relative;
     z-index: 2;
   }
 
-  .easter-egg-content.active {
+  .concept-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .concept-icon.violet {
+    background: rgba(167, 139, 250, 0.15);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+  }
+
+  .concept-icon.violet svg { stroke: var(--glow-violet); }
+
+  .concept-icon.cyan {
+    background: rgba(34, 211, 238, 0.15);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+  }
+
+  .concept-icon.cyan svg { stroke: var(--glow-cyan); }
+
+  .concept-icon.amber {
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  .concept-icon.amber svg { stroke: var(--glow-amber); }
+
+  .concept-card h3 {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .concept-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 2;
+    position: relative;
+    z-index: 2;
+  }
+
+  .concept-card p strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .quote-card {
+    grid-column: span 12;
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(34, 211, 238, 0.05));
+    border: 1px solid rgba(167, 139, 250, 0.2);
+    border-radius: 24px;
+    padding: 56px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quote-card::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 40px;
+    font-family: 'Space Grotesk', serif;
+    font-size: 10rem;
+    color: var(--glow-violet);
+    opacity: 0.1;
+    line-height: 1;
+  }
+
+  .quote-card p {
+    font-family: 'Space Grotesk', 'Noto Sans SC', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    line-height: 2;
+    font-style: italic;
+    position: relative;
+    z-index: 2;
+  }
+
+  .quote-card p strong {
+    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+    font-style: normal;
+  }
+
+  /* PATHS SECTION */
+  .paths-container {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .path-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 48px 40px;
+    backdrop-filter: blur(20px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .path-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--glow-cyan), transparent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .path-card.horizontal::after {
+    background: linear-gradient(90deg, transparent, var(--glow-violet), transparent);
+  }
+
+  .path-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(34, 211, 238, 0.3);
+    box-shadow: 
+      0 30px 80px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(34, 211, 238, 0.05);
+  }
+
+  .path-card.horizontal:hover {
+    border-color: rgba(167, 139, 250, 0.3);
+    box-shadow: 
+      0 30px 80px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(167, 139, 250, 0.05);
+  }
+
+  .path-card:hover::after {
+    opacity: 1;
+  }
+
+  .path-visual {
+    width: 100%;
+    height: 120px;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .path-vertical-vis {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+  }
+
+  .path-node {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--glow-cyan);
+    box-shadow: 0 0 20px var(--glow-cyan);
+    flex-shrink: 0;
+  }
+
+  .path-node.dim {
+    width: 8px; height: 8px;
+    opacity: 0.3;
+    box-shadow: none;
+  }
+
+  .path-node.branch {
+    width: 10px; height: 10px;
+    opacity: 0.6;
+    box-shadow: 0 0 12px var(--glow-cyan);
+  }
+
+  .path-line-v {
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(to bottom, var(--glow-cyan), rgba(34, 211, 238, 0.2));
+  }
+
+  /* Branching section at bottom */
+  .path-branch-wrap {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 4px;
+  }
+
+  .path-branch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .path-branch-line {
+    width: 2px;
+    height: 16px;
+    background: linear-gradient(to bottom, rgba(34, 211, 238, 0.4), rgba(34, 211, 238, 0.15));
+  }
+
+  .path-branch-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+    white-space: nowrap;
+  }
+
+  /* SVG fork connector */
+  .path-fork-svg {
+    margin-top: -2px;
+    margin-bottom: -2px;
+  }
+
+  .path-horizontal-vis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+  }
+
+  .path-domain {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border: 2px solid var(--glow-violet);
+    color: var(--glow-violet);
+  }
+
+  .path-domain:nth-child(2) {
+    border-color: var(--glow-cyan);
+    color: var(--glow-cyan);
+  }
+
+  .path-bridge {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--glow-violet), var(--glow-cyan));
+    position: relative;
+  }
+
+  .path-bridge::before {
+    content: '↔';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    background: var(--deep-space);
+    padding: 0 8px;
+  }
+
+  .path-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--glow-cyan);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .path-card.horizontal .path-label {
+    color: var(--glow-violet);
+  }
+
+  .path-title {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .path-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 2;
+    margin-bottom: 28px;
+  }
+
+  .path-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .path-tag {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    background: rgba(34, 211, 238, 0.1);
+    color: var(--glow-cyan);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+  }
+
+  .path-card.horizontal .path-tag {
+    background: rgba(167, 139, 250, 0.1);
+    color: var(--glow-violet);
+    border-color: rgba(167, 139, 250, 0.2);
+  }
+
+  /* FLOW SECTION */
+  .flow-timeline {
+    position: relative;
+    padding-left: 60px;
+  }
+
+  .flow-timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--glow-cyan), var(--glow-violet), var(--glow-amber), transparent);
+  }
+
+  .flow-item {
+    position: relative;
+    margin-bottom: 48px;
+    padding: 32px 36px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    transition: all 0.4s ease;
+  }
+
+  .flow-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .flow-item:hover {
+    border-color: rgba(34, 211, 238, 0.3);
+    transform: translateX(8px);
+  }
+
+  .flow-item::before {
+    content: '';
+    position: absolute;
+    left: -52px;
+    top: 44px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--deep-space);
+    border: 2px solid var(--glow-cyan);
+    box-shadow: 0 0 20px var(--glow-cyan);
+  }
+
+  .flow-item:nth-child(2)::before {
+    border-color: var(--glow-violet);
+    box-shadow: 0 0 20px var(--glow-violet);
+  }
+
+  .flow-item:nth-child(3)::before {
+    border-color: var(--glow-amber);
+    box-shadow: 0 0 20px var(--glow-amber);
+  }
+
+  .flow-item:nth-child(4)::before {
+    border-color: var(--glow-rose);
+    box-shadow: 0 0 20px var(--glow-rose);
+  }
+
+  .flow-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    color: var(--glow-cyan);
+    letter-spacing: 0.3em;
+    margin-bottom: 12px;
+  }
+
+  .flow-item:nth-child(2) .flow-num { color: var(--glow-violet); }
+  .flow-item:nth-child(3) .flow-num { color: var(--glow-amber); }
+  .flow-item:nth-child(4) .flow-num { color: var(--glow-rose); }
+
+  .flow-item h3 {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .flow-item p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.9;
+  }
+
+  /* USERS SECTION */
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 64px;
+  }
+
+  .user-card {
+    padding: 36px 28px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    transition: all 0.4s ease;
+  }
+
+  .user-card:hover {
+    border-color: rgba(167, 139, 250, 0.3);
+    transform: translateY(-4px);
+  }
+
+  .user-avatar {
+    width: 64px; height: 64px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(34, 211, 238, 0.2));
+    border: 1px solid rgba(167, 139, 250, 0.3);
+  }
+
+  .user-avatar svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--glow-cyan);
+  }
+
+  .user-card:nth-child(2) .user-avatar svg { stroke: var(--glow-violet); }
+  .user-card:nth-child(3) .user-avatar svg { stroke: var(--glow-amber); }
+
+  .user-card h4 {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .user-card p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .scenario-card {
+    padding: 28px 32px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-left: 3px solid var(--glow-cyan);
+    border-radius: 0 16px 16px 0;
+    transition: all 0.3s ease;
+  }
+
+  .scenario-card:nth-child(2) { border-left-color: var(--glow-violet); }
+  .scenario-card:nth-child(3) { border-left-color: var(--glow-amber); }
+  .scenario-card:nth-child(4) { border-left-color: var(--glow-rose); }
+
+  .scenario-card:hover {
+    background: rgba(34, 211, 238, 0.05);
+    transform: translateX(4px);
+  }
+
+  .scenario-card:nth-child(2):hover { background: rgba(167, 139, 250, 0.05); }
+  .scenario-card:nth-child(3):hover { background: rgba(251, 191, 36, 0.05); }
+  .scenario-card:nth-child(4):hover { background: rgba(251, 113, 133, 0.05); }
+
+  .scenario-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .scenario-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  /* PAIN POINTS */
+  .pain-list {
+    list-style: none;
+    counter-reset: pain;
+  }
+
+  .pain-item {
+    counter-increment: pain;
+    padding: 28px 32px 28px 80px;
+    margin-bottom: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .pain-item:last-child { margin-bottom: 0; }
+
+  .pain-item::before {
+    content: counter(pain, decimal-leading-zero);
+    position: absolute;
+    left: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--glow-rose);
+    opacity: 0.6;
+  }
+
+  .pain-item:hover {
+    border-color: rgba(251, 113, 133, 0.3);
+    background: rgba(251, 113, 133, 0.03);
+  }
+
+  .pain-item p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  .pain-item p strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  /* VALUE SECTION */
+  .value-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+
+  .value-col {
+    padding: 48px 40px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+  }
+
+  .value-col h3 {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .value-col h3::before {
+    content: '';
+    width: 4px; height: 24px;
+    border-radius: 2px;
+    background: linear-gradient(to bottom, var(--glow-cyan), var(--glow-violet));
+  }
+
+  .value-item {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .value-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .value-item h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .value-item h4 .bullet {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--glow-cyan);
+    box-shadow: 0 0 10px var(--glow-cyan);
+  }
+
+  .value-col:last-child .value-item h4 .bullet {
+    background: var(--glow-amber);
+    box-shadow: 0 0 10px var(--glow-amber);
+  }
+
+  .value-item p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    padding-left: 20px;
+  }
+
+  /* CTA FOOTER */
+  .finale-zone {
+    width: 100%;
+    height: 100vh;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal.visible {
     opacity: 1;
     transform: translateY(0);
   }
 
-  .easter-egg-title {
-    font-family: var(--font-title);
-    font-size: clamp(80px, 18vw, 200px);
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 24px;
-    background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 60px rgba(34, 211, 238, 0.5)) drop-shadow(0 0 120px rgba(167, 139, 250, 0.3));
-    letter-spacing: 8px;
-  }
-
-  .easter-egg-slogan {
-    font-size: 18px;
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 32px;
-    letter-spacing: 2px;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-  }
-
-  .easter-egg-slogan-en {
-    font-family: var(--font-ui);
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  .easter-egg-slogan-zh {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .easter-egg-desc {
-    max-width: 600px;
-    margin: 0 auto 48px;
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.5);
-    line-height: 1.8;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-  }
-
-  .easter-egg-footer {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .easter-egg-footer span {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .easter-egg-footer .highlight {
-    color: var(--glow-amber);
-  }
-
-  /* Burst rings */
-  .burst-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    pointer-events: none;
-    opacity: 0;
-  }
-
-  .burst-ring.active {
-    animation: burst-expand 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .burst-ring:nth-child(1) {
-    width: 0;
-    height: 0;
-    border: 2px solid var(--glow-cyan);
-    animation-delay: 0s;
-  }
-
-  .burst-ring:nth-child(2) {
-    width: 0;
-    height: 0;
-    border: 2px solid var(--glow-violet);
-    animation-delay: 0.2s;
-  }
-
-  .burst-ring:nth-child(3) {
-    width: 0;
-    height: 0;
-    border: 2px solid var(--glow-amber);
-    animation-delay: 0.4s;
-  }
-
-  .burst-ring:nth-child(4) {
-    width: 0;
-    height: 0;
-    border: 2px solid var(--glow-rose);
-    animation-delay: 0.6s;
-  }
-
-  .burst-ring:nth-child(5) {
-    width: 0;
-    height: 0;
-    border: 1px solid var(--glow-mint);
-    animation-delay: 0.8s;
-  }
-
-  @keyframes burst-expand {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 1;
-    }
-    100% {
-      width: 200vmax;
-      height: 200vmax;
-      opacity: 0;
-    }
-  }
-
-  /* Responsive */
+  /* RESPONSIVE */
   @media (max-width: 1024px) {
-    .nav {
-      padding: 14px 24px;
-    }
-
-    .nav-links {
-      gap: 20px;
-    }
-
-    .nav-author-text {
-      display: none;
-    }
-
-    .concept-grid,
-    .value-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .paths-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .users-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .section {
-      padding: 100px 24px;
-    }
+    .concept-card.large,
+    .concept-card.small { grid-column: span 12; }
+    .paths-container { grid-template-columns: 1fr; }
+    .value-split { grid-template-columns: 1fr; }
+    .users-grid { grid-template-columns: 1fr; }
   }
 
   @media (max-width: 768px) {
-    .nav-links li:not(:last-child) {
-      display: none;
-    }
-
-    .nav {
-      padding: 12px 16px;
-    }
-
-    .hero {
-      padding: 80px 20px 60px;
-    }
-
-    .hero-subtitle {
-      font-size: 12px;
-      letter-spacing: 8px;
-    }
-
-    .hero-slogan {
-      padding: 12px 24px;
-      font-size: 13px;
-    }
-
-    .easter-egg-hint {
-      right: 20px;
-      bottom: 80px;
-      font-size: 10px;
-    }
-
-    .glass-card {
-      padding: 24px;
-    }
-
-    .path-card {
-      padding: 24px;
-    }
-
-    .dialogue-round {
-      padding: 20px;
-    }
-
-    .dialogue-answer {
-      padding-left: 0;
-    }
-
-    .dialogue-answer::before {
-      display: none;
-    }
+    .container { padding: 0 24px; }
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 80px 0; }
+    .scenarios-grid { grid-template-columns: 1fr; }
+    .flow-timeline { padding-left: 40px; }
+    .flow-item { padding: 24px; }
+    .flow-item::before { left: -36px; }
+    .flow-timeline::before { left: 12px; }
   }
 </style>
 </head>
 <body>
-<canvas id="starCanvas"></canvas>
 
-<div class="content-wrapper">
-  <!-- Nav -->
-  <nav class="nav">
-    <div class="nav-logo">
-      <div class="nav-logo-lines">
-        <span></span>
-        <span></span>
-      </div>
-      <span>PARALLAX</span>
-    </div>
+<!-- Starfield -->
+<div class="starfield" id="starfield">
+  <canvas id="starCanvas"></canvas>
+</div>
+
+<!-- Wow moment overlay -->
+<div class="footer-wow" id="footerWow">
+  <div class="wow-line-1">你刚才体验的，就是</div>
+  <div class="wow-line-2">视差 · Parallax</div>
+  <div class="wow-line-3">换个角度，看见被遮蔽的世界</div>
+  <div class="wow-slogan">
+    Change your angle, change your world. / 更易视角，更易世界。
+  </div>
+</div>
+
+<!-- Depth orbs -->
+<div class="depth-layer">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Grid overlay -->
+<div class="grid-overlay"></div>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-mark"></div>
+    <span class="nav-logo-text">PARALLAX</span>
+  </div>
+  <div class="nav-right">
     <ul class="nav-links">
       <li><a href="#concept">概念</a></li>
-      <li><a href="#path">路径</a></li>
-      <li><a href="#dialogue">流程</a></li>
+      <li><a href="#paths">路径</a></li>
+      <li><a href="#flow">流程</a></li>
       <li><a href="#users">用户</a></li>
       <li><a href="#value">价值</a></li>
-      <li><a href="#easter-egg" class="nav-demo">DEMO</a></li>
     </ul>
     <div class="nav-author">
-      <div class="nav-author-avatar">E</div>
-      <div class="nav-author-text">
-        <span class="name">鸡蛋摊摊主 / Eggseller</span>
-        <span class="event">TRAE AI 创造力大赛</span>
-      </div>
+      <span class="nav-author-name">鸡蛋摊摊主 / Eggseller</span>
+      <span class="nav-author-track">TRAE AI 创造力大赛</span>
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-subtitle">P A R A L L A X</div>
-    <h1 class="hero-title">视差</h1>
-    <div class="hero-slogan">
-      <span class="hero-slogan-en">Change your angle, change your world.</span>
-      <span class="hero-slogan-zh">更易视角，更易世界。</span>
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    AI-POWERED COGNITIVE TOOL
+  </div>
+  
+  <div class="hero-title-wrap">
+    <div class="hero-orbit">
+      <svg width="420" height="280" viewBox="0 0 420 280">
+        <ellipse class="orbit-ring" cx="210" cy="140" rx="200" ry="80"/>
+        <ellipse class="orbit-ring-2" cx="210" cy="140" rx="170" ry="60"/>
+        <circle class="orbit-dot" cx="410" cy="140" r="4"/>
+        <circle class="orbit-dot-2" cx="40" cy="140" r="3"/>
+      </svg>
     </div>
-    <div class="easter-egg-hint">✨ 下滑有彩蛋</div>
-    <div class="scroll-hint">
-      <span class="scroll-hint-arrow">↓</span>
-      <span>SCROLL</span>
-    </div>
-  </section>
+    <h1 class="hero-title">
+      <span class="gradient-text char shift-1">视</span>
+      <span class="parallax-marker">
+        <span class="marker-line"></span>
+        <span class="marker-dot"></span>
+        <span class="marker-line bottom"></span>
+      </span>
+      <span class="gradient-text char shift-1">差</span>
+      <span class="shift-2">
+        <span class="char">视</span>
+        <span class="char">差</span>
+      </span>
+    </h1>
+  </div>
+
+  <div class="hero-subtitle-en">P A R A L L A X</div>
+
+  <p class="hero-desc">
+    不靠蛮力破壁，只凭视角偏移<br>
+    <strong>看见被遮蔽的，连接本不相关的</strong>
+  </p>
+
+  <div class="hero-slogan">
+    <span class="slogan-en">Change your angle, change your world.</span>
+    <span class="slogan-cn">更易视角，更易世界。</span>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-hint-text">下滑有 <span class="highlight">彩蛋</span></div>
+    <div class="scroll-hint-arrow"></div>
+  </div>
+</section>
+
+<div class="container">
 
   <!-- Concept -->
-  <section class="section" id="concept">
-    <div class="section-inner">
-      <div class="concept-grid">
-        <div class="concept-visual">
-          <div class="concept-circle">
-            <div class="concept-dot"></div>
-            <div class="concept-dot"></div>
-            <div class="concept-dot"></div>
-            <div class="concept-dot"></div>
-            <div class="concept-line"></div>
-            <div class="concept-line"></div>
+  <section id="concept" class="reveal">
+    <div class="section-header">
+      <div class="section-tag">01 / CONCEPT</div>
+      <h2 class="section-title">为什么是<em>「视差」</em></h2>
+      <p class="section-desc">源于天文学的隐喻，应用于认知的突破——轻轻挪动视角，世界便不一样。</p>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-card large">
+        <div class="concept-icon violet">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7 L8 12 L3 17"/>
+            <path d="M21 7 L16 12 L21 17"/>
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 9 L12 6 M12 15 L12 18 M9 12 L6 12 M15 12 L18 12"/>
+          </svg>
+        </div>
+        <h3>名字的由来</h3>
+        <p>「视差」源于天文学概念——<strong>观察者位置移动导致同一物体在背景上产生视觉位移</strong>。本产品取其隐喻：用户只需将认知观测点「平移一个思维模型的距离」，那些被算法遮蔽的跨领域连接便会自然显现。</p>
+      </div>
+
+      <div class="concept-card small">
+        <div class="concept-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 C8 3 5 6 5 10 C5 12 6 14 7 15 C6 16 5 17 5 18 C5 20 7 21 9 21 L15 21 C17 21 19 20 19 18 C19 17 18 16 17 15 C18 14 19 12 19 10 C19 6 16 3 12 3 Z"/>
+            <path d="M9 8 Q12 6 15 8"/>
+            <circle cx="9.5" cy="11" r="1" fill="currentColor"/>
+            <circle cx="14.5" cy="11" r="1" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3>产品形态</h3>
+        <p>基于 <strong>AI 对话</strong> 的认知破茧工具——通过苏格拉底式对话建立认知画像，提供「垂直深潜」与「水平桥接」两种破茧路径。</p>
+      </div>
+
+      <div class="quote-card">
+        <p>茧房的恐怖之处在于「舒适」。与其让用户努力「走出去」，<br>不如在他们现有的认知与兴趣基础上，<strong>轻轻挪动视角</strong>。</p>
+      </div>
+
+      <div class="concept-card small">
+        <div class="concept-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="5"/>
+            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            <path d="M12 3 L12 1 M12 23 L12 21 M3 12 L1 12 M23 12 L21 12"/>
+          </svg>
+        </div>
+        <h3>想解决的问题</h3>
+        <p>算法推荐时代的<strong>「信息茧房」困局</strong>。用户被追求注意力与商业价值的算法困在低质、同质化的内容里，认知边界不断收缩，却缺乏主动破圈的工具。</p>
+      </div>
+
+      <div class="concept-card large">
+        <div class="concept-icon violet">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18 L15 18"/>
+            <path d="M10 21 L14 21"/>
+            <path d="M12 3 C8 3 6 6 6 9 C6 11 7 13 8.5 14.5 C9 15 9.5 16 9.5 17 L14.5 17 C14.5 16 15 15 15.5 14.5 C17 13 18 11 18 9 C18 6 16 3 12 3 Z"/>
+            <path d="M12 6 L12 14 M9.5 9.5 L12 7 L14.5 9.5"/>
+          </svg>
+        </div>
+        <h3>核心理念</h3>
+        <p>与熟悉而简单的「下一个视频」相比，用户不会长期使用一个「费脑子」的「破茧工具」，让唐突割裂的随机推荐中失去视线焦点。<strong>我们不打破茧房，我们帮你挪动观察点——</strong>从不同的角度，看到同样内容背后的不同世界。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Paths -->
+  <section id="paths" class="reveal">
+    <div class="section-header">
+      <div class="section-tag">02 / CORE PATHS</div>
+      <h2 class="section-title">两种<em>破茧路径</em></h2>
+      <p class="section-desc">向下深挖原理，向横跨界连接——两条路径，一个目标：拓展认知边界。</p>
+    </div>
+
+    <div class="paths-container">
+      <div class="path-card vertical">
+        <div class="path-visual">
+          <div class="path-vertical-vis">
+            <div class="path-node dim"></div>
+            <div class="path-line-v"></div>
+            <div class="path-node dim"></div>
+            <div class="path-line-v"></div>
+            <div class="path-node"></div>
+            <svg class="path-fork-svg" width="120" height="20" viewBox="0 0 120 20">
+              <path d="M60 0 Q60 10 20 18" fill="none" stroke="rgba(34,211,238,0.35)" stroke-width="1.5"/>
+              <path d="M60 0 L60 18" fill="none" stroke="rgba(34,211,238,0.35)" stroke-width="1.5"/>
+              <path d="M60 0 Q60 10 100 18" fill="none" stroke="rgba(34,211,238,0.35)" stroke-width="1.5"/>
+            </svg>
+            <div class="path-branch-wrap">
+              <div class="path-branch">
+                <div class="path-node branch"></div>
+                <div class="path-branch-line"></div>
+                <span class="path-branch-label">相邻领域</span>
+              </div>
+              <div class="path-branch">
+                <div class="path-node branch"></div>
+                <div class="path-branch-line"></div>
+                <span class="path-branch-label">底层原理</span>
+              </div>
+              <div class="path-branch">
+                <div class="path-node branch"></div>
+                <div class="path-branch-line"></div>
+                <span class="path-branch-label">延伸学科</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="concept-content">
-          <div class="section-label">01 / CONCEPT</div>
-          <h2 class="section-title">什么是视差？</h2>
-          <p class="section-desc">
-            视差，是一种<span class="concept-highlight">不靠蛮力破壁，只凭视角偏移</span>的认知方式。
-          </p>
-          <p class="section-desc" style="margin-top: 16px;">
-            当你被困在信息茧房中，不需要撞破墙壁，只需要轻轻移动一下你的观察位置——那些原本被遮蔽的星星，就会突然出现在你的视野里。
-          </p>
-          <p class="section-desc" style="margin-top: 16px;">
-            视差不是给你更多信息，而是给你<span class="concept-highlight">另一个角度</span>。
-          </p>
+        <div class="path-label">VERTICAL DIVE</div>
+        <h3 class="path-title">垂直深潜</h3>
+        <p class="path-desc">在用户擅长领域内，向底层原理层与相关领域持续下探，防止停留于浅层舒适区。从「知道是什么」到「理解为什么」。</p>
+        <div class="path-tags">
+          <span class="path-tag">深度</span>
+          <span class="path-tag">原理</span>
+          <span class="path-tag">溯源</span>
+          <span class="path-tag">第一性原理</span>
+        </div>
+      </div>
+
+      <div class="path-card horizontal">
+        <div class="path-visual">
+          <div class="path-horizontal-vis">
+            <div class="path-domain">领域A</div>
+            <div class="path-bridge"></div>
+            <div class="path-domain">领域B</div>
+          </div>
+        </div>
+        <div class="path-label">HORIZONTAL BRIDGE</div>
+        <h3 class="path-title">水平桥接</h3>
+        <p class="path-desc">提取用户兴趣的底层思维模型（博弈型 / 结构型 / 叙事型），推送逻辑相同但领域完全不同的跨界内容，实现认知平移。</p>
+        <div class="path-tags">
+          <span class="path-tag">跨界</span>
+          <span class="path-tag">迁移</span>
+          <span class="path-tag">连接</span>
+          <span class="path-tag">思维模型</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Path -->
-  <section class="section" id="path">
-    <div class="section-inner">
-      <div class="section-label">02 / PATH</div>
-      <h2 class="section-title">破茧路径</h2>
-      <p class="section-desc">
-        两条路径，两种方式，带你走出信息茧房。垂直深潜挖掘深度，水平桥接拓展广度。
-      </p>
-      <div class="paths-grid">
-        <div class="path-card vertical">
-          <div class="path-icon">↓</div>
-          <h3 class="path-title">垂直深潜</h3>
-          <p class="path-desc">
-            沿着一个主题，向下挖掘三层认知深度。从表面信息到底层逻辑，从观点到论据，从共识到争议。
-          </p>
-          <ul class="path-features">
-            <li>第一层：大众共识与主流观点</li>
-            <li>第二层：专业视角与深度分析</li>
-            <li>第三层：前沿争议与未知领域</li>
-          </ul>
-        </div>
-        <div class="path-card horizontal">
-          <div class="path-icon">↔</div>
-          <h3 class="path-title">水平桥接</h3>
-          <p class="path-desc">
-            在不同领域之间建立意想不到的连接。跨界的灵感碰撞，往往是创新的源泉。
-          </p>
-          <ul class="path-features">
-            <li>学科交叉：物理×心理学×艺术</li>
-            <li>文化映射：东方哲学×西方科学</li>
-            <li>时空穿越：历史智慧×未来趋势</li>
-          </ul>
-        </div>
-      </div>
+  <!-- Flow -->
+  <section id="flow" class="reveal">
+    <div class="section-header">
+      <div class="section-tag">03 / HOW IT WORKS</div>
+      <h2 class="section-title">认知画像<em>如何建立</em></h2>
+      <p class="section-desc">四步流程，从标签到画像，从画像到破茧——每一步都基于 AI 的深度理解。</p>
     </div>
-  </section>
 
-  <!-- Dialogue -->
-  <section class="section" id="dialogue">
-    <div class="section-inner">
-      <div class="section-label">03 / DIALOGUE</div>
-      <h2 class="section-title">苏格拉底式对话</h2>
-      <p class="section-desc">
-        通过三轮追问，逐步建立你的认知画像。每一个问题，都是一次视角的偏移。
-      </p>
-      <div class="dialogue-container">
-        <div class="dialogue-round">
-          <div class="dialogue-header">
-            <div class="dialogue-number">1</div>
-            <div class="dialogue-label">ROUND ONE</div>
-          </div>
-          <div class="dialogue-question">「你对这个话题有什么看法？」</div>
-          <div class="dialogue-answer">
-            从你的回答中，我们捕捉你的初始立场、关注焦点和思维惯性。这是认知画像的起点。
-          </div>
-        </div>
-        <div class="dialogue-round">
-          <div class="dialogue-header">
-            <div class="dialogue-number">2</div>
-            <div class="dialogue-label">ROUND TWO</div>
-          </div>
-          <div class="dialogue-question">「如果站在对立面，你会怎么反驳自己？」</div>
-          <div class="dialogue-answer">
-            这是第一次视角偏移。强迫你走出舒适区，去理解你原本不认同的观点。
-          </div>
-        </div>
-        <div class="dialogue-round">
-          <div class="dialogue-header">
-            <div class="dialogue-number">3</div>
-            <div class="dialogue-label">ROUND THREE</div>
-          </div>
-          <div class="dialogue-question">「假如有一个完全中立的第三方，他们会怎么看？」</div>
-          <div class="dialogue-answer">
-            这是第二次视角偏移。超越二元对立，进入更高维度的认知空间。你会发现，真理往往不在两端，而在更高处。
-          </div>
-        </div>
+    <div class="flow-timeline">
+      <div class="flow-item">
+        <div class="flow-num">STEP 01</div>
+        <h3>预设领域标签</h3>
+        <p>用户选择或输入自己感兴趣的领域方向，初步圈定认知范围。系统根据领域自动识别可能的思维模型倾向。</p>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">STEP 02</div>
+        <h3>苏格拉底式对话 · 三轮追问</h3>
+        <p>AI 通过三轮递进式提问，深入理解用户的认知层级、思维偏好与深层兴趣。不是问卷，是对话——像一位洞察敏锐的朋友。</p>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">STEP 03</div>
+        <h3>生成认知画像</h3>
+        <p>系统锁定 3-4 个核心标签及认知层级，构建专属的认知地图。识别你的底层思维模型类型：博弈型、结构型、还是叙事型？</p>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">STEP 04</div>
+        <h3>破茧推荐 · 反馈闭环</h3>
+        <p>基于画像实时生成推荐内容，用户的「有用 / 无用」反馈持续优化后续推送。数据存于本地，越用越精准，越用越懂你。</p>
       </div>
     </div>
   </section>
 
   <!-- Users -->
-  <section class="section" id="users">
-    <div class="section-inner">
-      <div class="section-label">04 / USERS</div>
-      <h2 class="section-title">为谁而造</h2>
-      <p class="section-desc">
-        视差为那些不愿被定义、不甘被局限的人而造。他们相信，世界比算法推荐的更广阔。
-      </p>
-      <div class="users-grid">
-        <div class="user-card">
-          <div class="user-avatar">👀</div>
-          <h3 class="user-name">年轻内容消费者</h3>
-          <span class="user-tag">Gen Z</span>
-          <p class="user-desc">
-            每天刷着信息流，却感到越来越焦虑。明明看了很多，却好像什么都没记住。想跳出算法的掌控，却不知道从何开始。
-          </p>
-          <div class="user-pain">
-            "我感觉自己被困在一个透明的泡泡里，看得见外面，却出不去。"
-          </div>
+  <section id="users" class="reveal">
+    <div class="section-header">
+      <div class="section-tag">04 / TARGET USERS</div>
+      <h2 class="section-title">为谁<em>而造</em></h2>
+      <p class="section-desc">每一个不想被算法定义的你，每一个想看见更大世界的灵魂。</p>
+    </div>
+
+    <div class="users-grid">
+      <div class="user-card">
+        <div class="user-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="7" y="2" width="10" height="20" rx="2"/>
+            <line x1="11" y1="18" x2="13" y2="18"/>
+          </svg>
         </div>
-        <div class="user-card">
-          <div class="user-avatar">📚</div>
-          <h3 class="user-name">终身学习者</h3>
-          <span class="user-tag">CURIOUS</span>
-          <p class="user-desc">
-            对世界充满好奇，什么都想了解一点。但知识越学越碎片化，缺少一个能把一切串联起来的框架。
-          </p>
-          <div class="user-pain">
-            "我读了一百本书，却还是说不清世界到底是怎么运转的。"
-          </div>
+        <h4>年轻内容消费者</h4>
+        <p>18-30岁，B站/抖音/小红书重度用户</p>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 5 C4 4 5 3 6 3 L18 3 C19 3 20 4 20 5 L20 19 C20 20 19 21 18 21 L6 21 C5 21 4 20 4 19 Z"/>
+            <path d="M4 5 L4 19 C4 20 5 21 6 21"/>
+            <line x1="8" y1="8" x2="16" y2="8"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+            <line x1="8" y1="16" x2="13" y2="16"/>
+          </svg>
         </div>
-        <div class="user-card">
-          <div class="user-avatar">🚀</div>
-          <h3 class="user-name">跨界探索者</h3>
-          <span class="user-tag">CREATOR</span>
-          <p class="user-desc">
-            不满足于一个领域，总想在不同学科之间找到连接。相信真正的创新发生在边界，而不是中心。
-          </p>
-          <div class="user-pain">
-            "最有趣的问题，从来不属于任何一个单一学科。"
-          </div>
+        <h4>主动学习者</h4>
+        <p>对自我成长有诉求，缺的是方向</p>
+      </div>
+      <div class="user-card">
+        <div class="user-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3 C8 3 5 6 5 10 C5 13 7 15 8 17 C8.5 18 9 19 9 20 L15 20 C15 19 15.5 18 16 17 C17 15 19 13 19 10 C19 6 16 3 12 3 Z"/>
+            <path d="M9 20 L15 20"/>
+            <path d="M10 23 L14 23"/>
+            <path d="M12 7 L10 11 L14 11 L12 15"/>
+          </svg>
         </div>
+        <h4>创作者与学生</h4>
+        <p>需要跨学科视野的创意人群</p>
+      </div>
+    </div>
+
+    <div class="scenarios-grid">
+      <div class="scenario-card">
+        <h4>碎片化刷内容时</h4>
+        <p>想从「被动投喂」切换到「主动探索」，不再被算法牵着走</p>
+      </div>
+      <div class="scenario-card">
+        <h4>对某领域初步涉猎后</h4>
+        <p>想往里深挖原理层与底层逻辑，不满足于表面知识</p>
+      </div>
+      <div class="scenario-card">
+        <h4>想跨出舒适区时</h4>
+        <p>不知道「该往哪里跨」的迷茫时刻，需要一个精准的起点</p>
+      </div>
+      <div class="scenario-card">
+        <h4>每周认知体检</h4>
+        <p>花 5 分钟回顾最近在关注什么、底层逻辑是什么</p>
       </div>
     </div>
   </section>
 
-  <!-- Value -->
-  <section class="section" id="value">
-    <div class="section-inner">
-      <div class="section-label">05 / VALUE</div>
-      <h2 class="section-title">为什么是视差</h2>
-      <p class="section-desc">
-        我们不生产信息，我们只是视角的搬运工。
-      </p>
-      <div class="value-grid">
-        <div class="value-item">
-          <div class="value-icon">🔭</div>
-          <div>
-            <h4 class="value-title">视角偏移而非信息堆砌</h4>
-            <p class="value-desc">
-              大多数产品给你更多内容，视差给你另一个角度。我们相信，认知的升级靠的是维度的提升，而不是信息的累积。
-            </p>
-          </div>
-        </div>
-        <div class="value-item">
-          <div class="value-icon">🧩</div>
-          <div>
-            <h4 class="value-title">对话驱动而非被动接收</h4>
-            <p class="value-desc">
-              你不是在消费内容，你是在参与一场对话。每一个问题都在重塑你的认知，每一次回答都在定义你自己。
-            </p>
-          </div>
-        </div>
-        <div class="value-item">
-          <div class="value-icon">🌈</div>
-          <div>
-            <h4 class="value-title">拥抱模糊而非虚假确定</h4>
-            <p class="value-desc">
-              世界本来就是复杂的、灰色的、不确定的。我们不提供标准答案，我们帮你学会与不确定性共处。
-            </p>
-          </div>
-        </div>
-        <div class="value-item">
-          <div class="value-icon">🌱</div>
-          <div>
-            <h4 class="value-title">认知成长而非即时满足</h4>
-            <p class="value-desc">
-              这不是一个让你爽的产品，这是一个让你成长的产品。成长可能不舒服，但它值得。
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="name-origin">
-        <h3 class="name-origin-title">
-          名字的由来 — <span>PARALLAX</span>
-        </h3>
-        <p class="name-origin-text">
-          视差（Parallax），是一个天文学概念。指的是从不同位置观察同一个物体时，物体在视野中的位置会发生偏移。科学家正是利用这种效应，测量出了恒星与我们的距离。
-          <br><br>
-          我们相信，认知也是如此。你与真相的距离，往往只差一个视角的偏移。
-          <br><br>
-          <strong style="color: rgba(255,255,255,0.8);">我们相信，每一个人都值得拥有更广阔的视野。</strong>
-        </p>
-      </div>
+  <!-- Pain Points -->
+  <section class="reveal">
+    <div class="section-header">
+      <div class="section-tag">05 / PAIN POINTS</div>
+      <h2 class="section-title">当前的<em>困境</em></h2>
+      <p class="section-desc">这些感受，你一定不陌生。</p>
     </div>
+
+    <ul class="pain-list">
+      <li class="pain-item">
+        <p>刷完大量内容后感到<strong>空虚</strong>，既浪费时间又无法形成系统认知，形成「越刷越焦虑」的恶性循环</p>
+      </li>
+      <li class="pain-item">
+        <p>困在算法推荐的<strong>同质化内容</strong>里，认知边界逐步固化，视野越来越窄</p>
+      </li>
+      <li class="pain-item">
+        <p>现行产品缺乏合理的个性化推荐，「破茧」方式<strong>割裂单一</strong>，唐突的随机推荐让人失去焦点</p>
+      </li>
+      <li class="pain-item">
+        <p>想拓宽视野却只能依赖随机搜索或他人推荐，<strong>效率极低</strong>，找不到方向</p>
+      </li>
+      <li class="pain-item">
+        <p>无法识别自己兴趣背后的「底层思维模型」，<strong>错失跨领域迁移学习</strong>的机会</p>
+      </li>
+    </ul>
   </section>
 
-  <!-- Easter Egg -->
-  <section class="easter-egg-section" id="easter-egg">
-    <div class="burst-ring"></div>
-    <div class="burst-ring"></div>
-    <div class="burst-ring"></div>
-    <div class="burst-ring"></div>
-    <div class="burst-ring"></div>
-    <div class="easter-egg-content">
-      <h1 class="easter-egg-title">视差</h1>
-      <div class="easter-egg-slogan">
-        <div class="easter-egg-slogan-en">Change your angle, change your world.</div>
-        <div class="easter-egg-slogan-zh">更易视角，更易世界。</div>
-      </div>
-      <p class="easter-egg-desc">
-        感谢你一路看到这里。
-        <br><br>
-        视差不仅仅是一个产品，它是一种看待世界的方式。
-        <br>
-        当你愿意移动你的视角，你就已经走出了茧房。
-        <br><br>
-        愿你永远保持好奇，永远愿意从另一个角度看世界。
-      </p>
-      <div class="easter-egg-footer">
-        <span>👨‍🍳 作者：<span class="highlight">鸡蛋摊摊主 / Eggseller</span></span>
-        <span>🏆 <span class="highlight">TRAE AI 创造力大赛</span></span>
-        <span>✨ 2025</span>
-      </div>
-    </div>
-  </section>
 </div>
 
+<!-- Value Section (full width accent) -->
+<section id="value" class="reveal" style="background: linear-gradient(180deg, transparent, rgba(167, 139, 250, 0.05), transparent);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">06 / VALUE</div>
+      <h2 class="section-title">意义<em>所在</em></h2>
+      <p class="section-desc">不只是一个工具，更是一种对抗算法异化的态度。</p>
+    </div>
+
+    <div class="value-split">
+      <div class="value-col">
+        <h3>效率提升</h3>
+        <div class="value-item">
+          <h4><span class="bullet"></span>破圈效率</h4>
+          <p>将用户自主摸索新领域的时间从「数小时搜索 + 试错」压缩至「数轮对话 + 即时推送」</p>
+        </div>
+        <div class="value-item">
+          <h4><span class="bullet"></span>认知密度</h4>
+          <p>每条推荐都基于用户画像精准生成，避免无效信息轰炸，单位时间内有效认知摄入量显著提升</p>
+        </div>
+        <div class="value-item">
+          <h4><span class="bullet"></span>反馈闭环</h4>
+          <p>用户对推荐内容的「有用 / 无用」反馈持续优化后续推送，越用越精准，越用越懂你</p>
+        </div>
+      </div>
+
+      <div class="value-col">
+        <h3>社会价值</h3>
+        <div class="value-item">
+          <h4><span class="bullet"></span>对抗算法异化</h4>
+          <p>在推荐算法主导信息分发的时代，提供一种「人主动选择认知方向」的替代方案</p>
+        </div>
+        <div class="value-item">
+          <h4><span class="bullet"></span>推动跨学科思维</h4>
+          <p>通过「底层逻辑桥接」，帮助用户建立跨领域迁移能力——这是 AI 时代人类区别于机器的核心价值</p>
+        </div>
+        <div class="value-item">
+          <h4><span class="bullet"></span>降低认知不平等</h4>
+          <p>让缺乏跨学科知识背景的普通用户，也能低成本获得「跨界连接」的认知体验</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Empty finale zone for wow moment -->
+<div class="finale-zone"></div>
+
 <script>
-(function() {
-  const canvas = document.getElementById('starCanvas');
-  const ctx = canvas.getContext('2d');
+  // Canvas Starfield — Parallax narrative animation
+  // Story: user at center -> dim cocoon stars -> viewpoint shifts -> hidden stars revealed -> full network
+  (function() {
+    const canvas = document.getElementById('starCanvas');
+    const ctx = canvas.getContext('2d');
+    const wowLayer = document.getElementById('footerWow');
 
-  let width, height;
-  let stars = [];
-  const starCount = 200;
-  let mouseX = 0, mouseY = 0;
-  let scrollProgress = 0;
-  let cameraX = 0, cameraY = 0, cameraRot = 0;
-  let targetCameraX = 0, targetCameraY = 0, targetCameraRot = 0;
-  let burstProgress = 0;
-  let easterEggActive = false;
+    let width, height;
+    let centerX, centerY;
 
-  const colors = [
-    '#22D3EE',
-    '#A78BFA',
-    '#FB7185',
-    '#6EE7B7',
-    '#FBBF24'
-  ];
+    // Star groups
+    let cocoonStars = [];   // dim stars in the cocoon (what user normally sees)
+    let hiddenStars = [];   // stars hidden behind the cocoon (revealed by parallax)
+    let userStar = null;    // the center star representing the user
 
-  function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    initStars();
-  }
+    // Parallax offset (simulates viewpoint shift)
+    let parallaxX = 0;
+    let parallaxY = 0;
+    let targetParallaxX = 0;
+    let targetParallaxY = 0;
+    let rotation = 0;
 
-  function initStars() {
-    stars = [];
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const maxDist = Math.min(width, height) * 0.45;
+    // Scroll progress
+    let scrollProgress = 0;
+    let targetProgress = 0;
 
-    for (let i = 0; i < starCount; i++) {
-      const isCenter = i === 0;
-      const isColored = Math.random() < 0.3;
-      const angle = Math.random() * Math.PI * 2;
-      const dist = isCenter ? 0 : Math.random() * maxDist + 20;
+    const cocoonCount = 18;
+    const hiddenCount = 180;
 
-      stars.push({
-        x: isCenter ? centerX : centerX + Math.cos(angle) * dist,
-        y: isCenter ? centerY : centerY + Math.sin(angle) * dist,
-        baseX: 0,
-        baseY: 0,
-        size: isCenter ? 3 : Math.random() * 1.5 + 0.5,
-        baseSize: 0,
-        color: isCenter ? '#ffffff' : (isColored ? colors[Math.floor(Math.random() * colors.length)] : '#ffffff'),
-        brightness: isCenter ? 1 : (isColored ? 0.4 : 0.2),
-        baseBrightness: 0,
-        twinkleSpeed: Math.random() * 2 + 0.5,
-        twinkleOffset: Math.random() * Math.PI * 2,
-        depth: Math.random() * 0.5 + 0.5,
-        isCenter: isCenter,
-        isColored: isColored,
-        hidden: Math.random() < 0.4,
-        targetConnections: [],
-        connections: []
-      });
-
-      stars[i].baseX = stars[i].x;
-      stars[i].baseY = stars[i].y;
-      stars[i].baseSize = stars[i].size;
-      stars[i].baseBrightness = stars[i].brightness;
+    function resize() {
+      width = canvas.width = window.innerWidth * window.devicePixelRatio;
+      height = canvas.height = window.innerHeight * window.devicePixelRatio;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      centerX = width / 2;
+      centerY = height / 2;
+      initStars();
     }
 
-    for (let i = 0; i < stars.length; i++) {
-      if (stars[i].isCenter) continue;
-      const numConnections = Math.floor(Math.random() * 3) + 1;
-      for (let j = 0; j < numConnections; j++) {
-        const targetIdx = Math.floor(Math.random() * stars.length);
-        if (targetIdx !== i && !stars[i].targetConnections.includes(targetIdx)) {
-          stars[i].targetConnections.push(targetIdx);
-        }
+    function initStars() {
+      // User star (center)
+      userStar = {
+        x: 0, y: 0, // relative to center
+        size: 6,
+        pulse: 0,
+        color: '#22d3ee'
+      };
+
+      // Cocoon stars — in a ring/torus around center, dim and close
+      cocoonStars = [];
+      for (let i = 0; i < cocoonCount; i++) {
+        const angle = (i / cocoonCount) * Math.PI * 2 + Math.random() * 0.3;
+        const dist = 120 + Math.random() * 100; // distance from center
+        cocoonStars.push({
+          ox: Math.cos(angle) * dist * window.devicePixelRatio,
+          oy: Math.sin(angle) * dist * window.devicePixelRatio,
+          size: (1.5 + Math.random() * 1.5) * window.devicePixelRatio * 0.5,
+          baseOpacity: 0.25 + Math.random() * 0.2,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          twinkleSpeed: 0.01 + Math.random() * 0.01,
+          angle: angle,
+          dist: dist * window.devicePixelRatio,
+          orbitSpeed: (Math.random() - 0.5) * 0.0008,
+          // each cocoon star has a cluster of hidden stars behind it
+          hiddenCluster: i
+        });
+      }
+
+      // Hidden stars — distributed across whole field, initially invisible
+      // Grouped into clusters "behind" each cocoon star
+      const colorPalette = [
+        { r: 100, g: 180, b: 230 },  // ice blue
+        { r: 170, g: 150, b: 220 },  // lavender
+        { r: 220, g: 160, b: 180 },  // dusty rose
+        { r: 130, g: 210, b: 190 },  // mint
+        { r: 230, g: 190, b: 140 },  // warm amber
+      ];
+      
+      hiddenStars = [];
+      for (let i = 0; i < hiddenCount; i++) {
+        const clusterIdx = Math.floor(Math.random() * cocoonCount);
+        const cluster = cocoonStars[clusterIdx];
+        
+        // Stars are spread around (but not exactly at) each cocoon position
+        const spread = 180 + Math.random() * 160;
+        const angle = Math.random() * Math.PI * 2;
+        const distFromCluster = Math.random() * spread * window.devicePixelRatio;
+
+        // ~30% get colored tint
+        const isColored = Math.random() < 0.3;
+        const color = isColored ? colorPalette[Math.floor(Math.random() * colorPalette.length)] : null;
+
+        hiddenStars.push({
+          // Position in world space (absolute canvas coords relative to center)
+          ox: cluster.ox + Math.cos(angle) * distFromCluster,
+          oy: cluster.oy + Math.sin(angle) * distFromCluster,
+          size: (0.8 + Math.random() * 1.8) * window.devicePixelRatio * 0.5,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          twinkleSpeed: 0.008 + Math.random() * 0.015,
+          clusterIdx: clusterIdx,
+          baseOpacity: 0.4 + Math.random() * 0.5,
+          connectDelay: Math.random() * 0.3, // for staggered connection animation
+          isColored: isColored,
+          color: color
+        });
       }
     }
-  }
 
-  function getPhase() {
-    if (scrollProgress < 0.15) {
-      return 0;
-    } else if (scrollProgress < 0.35) {
-      return 1;
-    } else if (scrollProgress < 0.55) {
-      return 2;
-    } else if (scrollProgress < 0.75) {
-      return 3;
-    } else if (scrollProgress < 0.9) {
-      return 4;
-    } else {
-      return 5;
-    }
-  }
-
-  function getPhaseProgress() {
-    if (scrollProgress < 0.15) {
-      return scrollProgress / 0.15;
-    } else if (scrollProgress < 0.35) {
-      return (scrollProgress - 0.15) / 0.2;
-    } else if (scrollProgress < 0.55) {
-      return (scrollProgress - 0.35) / 0.2;
-    } else if (scrollProgress < 0.75) {
-      return (scrollProgress - 0.55) / 0.2;
-    } else if (scrollProgress < 0.9) {
-      return (scrollProgress - 0.75) / 0.15;
-    } else {
-      return (scrollProgress - 0.9) / 0.1;
-    }
-  }
-
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-
-  function updateStars(time) {
-    const phase = getPhase();
-    const phaseProgress = easeInOutCubic(getPhaseProgress());
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    if (phase === 0) {
-      targetCameraX = 0;
-      targetCameraY = 0;
-      targetCameraRot = 0;
-    } else if (phase >= 1 && phase <= 3) {
-      const moveProgress = phase === 1 ? phaseProgress : (phase === 2 ? 1 : (1 - phaseProgress * 0.3));
-      targetCameraX = Math.sin(time * 0.0001) * 30 * moveProgress + 80 * moveProgress;
-      targetCameraY = Math.cos(time * 0.00015) * 20 * moveProgress - 40 * moveProgress;
-      targetCameraRot = 0.08 * moveProgress;
-    } else if (phase === 4) {
-      targetCameraX = 40 * (1 - phaseProgress);
-      targetCameraY = -20 * (1 - phaseProgress);
-      targetCameraRot = 0.04 * (1 - phaseProgress);
-    } else {
-      targetCameraX = 0;
-      targetCameraY = 0;
-      targetCameraRot = 0;
+    function updateScrollProgress() {
+      const scrollTop = window.scrollY || window.pageYOffset;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      targetProgress = docHeight > 0 ? Math.min(1, Math.max(0, scrollTop / docHeight)) : 0;
     }
 
-    cameraX += (targetCameraX - cameraX) * 0.05;
-    cameraY += (targetCameraY - cameraY) * 0.05;
-    cameraRot += (targetCameraRot - cameraRot) * 0.05;
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
 
-    for (let i = 0; i < stars.length; i++) {
-      const star = stars[i];
-      const twinkle = Math.sin(time * 0.001 * star.twinkleSpeed + star.twinkleOffset) * 0.15 + 0.85;
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
 
-      let brightness = star.baseBrightness;
-      let size = star.baseSize;
+    function easeInCubic(t) {
+      return t * t * t;
+    }
 
-      if (star.isCenter) {
-        if (phase === 0) {
-          brightness = 1;
-          size = 3;
-        } else if (phase >= 1 && phase <= 3) {
-          brightness = 1 + phaseProgress * 0.5;
-          size = 3 + phaseProgress * 2;
-        } else if (phase === 4) {
-          brightness = 1.5 + phaseProgress * 1;
-          size = 5 + phaseProgress * 5;
-        } else {
-          brightness = 2.5 + burstProgress * 2;
-          size = 10 + burstProgress * 20;
-        }
-      } else {
-        if (phase === 0) {
-          brightness = star.hidden ? 0.05 : star.baseBrightness;
-          size = star.baseSize * (star.hidden ? 0.5 : 1);
-        } else if (phase === 1) {
-          const revealProgress = phaseProgress;
-          if (star.hidden) {
-            brightness = 0.05 + star.baseBrightness * 0.5 * revealProgress;
-            size = star.baseSize * 0.5 + star.baseSize * 0.5 * revealProgress;
+    function animate(time) {
+      // Smooth scroll progress
+      scrollProgress += (targetProgress - scrollProgress) * 0.05;
+
+      // Clear
+      ctx.clearRect(0, 0, width, height);
+
+      const p = scrollProgress;
+
+      // --- PHASE DEFINITIONS ---
+      // Phase 0 (0 - 0.08): Cocoon state — center star + dim ring of cocoon stars
+      // Phase 1 (0.08 - 0.3): Viewpoint starts shifting — parallax offset + rotation
+      // Phase 2 (0.25 - 0.5): Hidden stars revealed — they appear from behind cocoon stars
+      // Phase 3 (0.45 - 0.72): Connections form — lines from center to all visible stars
+      // Phase 4 (0.72 - 1.0): Finale — massive brightness boost, dense connections, burst + wow text
+
+      const phase0 = 1 - Math.min(1, p / 0.08);
+      const phase1 = easeInOutCubic(Math.min(1, Math.max(0, (p - 0.04) / 0.26))); // parallax shift
+      const phase2 = easeOutCubic(Math.min(1, Math.max(0, (p - 0.25) / 0.25))); // hidden stars appear
+      const phase3 = easeOutCubic(Math.min(1, Math.max(0, (p - 0.45) / 0.27))); // connections
+      const phase4 = easeInOutCubic(Math.min(1, Math.max(0, (p - 0.72) / 0.28))); // finale
+
+      // Calculate parallax offset (viewpoint shift)
+      // Direction: diagonal + rotation for camera-turn feel
+      const maxShift = 180 * window.devicePixelRatio;
+      const maxRotation = 8; // degrees
+      
+      // Combined: shift + rotation
+      targetParallaxX = Math.sin(phase1 * Math.PI * 0.9) * maxShift;
+      targetParallaxY = Math.cos(phase1 * Math.PI * 0.7) * maxShift * 0.7;
+      const targetRotation = Math.sin(phase1 * Math.PI * 0.8) * maxRotation;
+      
+      parallaxX += (targetParallaxX - parallaxX) * 0.03;
+      parallaxY += (targetParallaxY - parallaxY) * 0.03;
+      rotation += (targetRotation - rotation) * 0.025;
+
+      // Helper: get screen position of a star given its world pos and parallax
+      function screenPos(wx, wy, depth) {
+        // depth 0 = foreground (moves more with parallax), depth 1 = background (moves less)
+        const parallaxFactor = 1 - depth * 0.65;
+        const px = parallaxX * parallaxFactor;
+        const py = parallaxY * parallaxFactor;
+
+        // Apply rotation around center
+        const cos = Math.cos(rotation * Math.PI / 180);
+        const sin = Math.sin(rotation * Math.PI / 180);
+        const rx = wx * cos - wy * sin;
+        const ry = wx * sin + wy * cos;
+
+        return {
+          x: centerX + rx + px,
+          y: centerY + ry + py
+        };
+      }
+
+      // --- DRAW HIDDEN STARS (background layer) ---
+      hiddenStars.forEach((star, i) => {
+        // Hidden stars are at "depth 1" (background), so they move less with parallax
+        const pos = screenPos(star.ox, star.oy, 1);
+        
+        // Visibility: starts at 0, grows in phase2, with per-star stagger
+        const stagger = (i / hiddenCount) * 0.4;
+        const visibleAmount = Math.min(1, Math.max(0, (phase2 - stagger) / 0.6));
+        
+        if (visibleAmount <= 0) return;
+
+        const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+        
+        // Massive brightness boost in finale
+        const finaleBoost = 1 + phase4 * 2.5;
+        const opacity = Math.min(1, star.baseOpacity * visibleAmount * (0.6 + twinkle * 0.4) * finaleBoost);
+        const size = star.size * (0.8 + visibleAmount * 0.4 + phase4 * 1.5);
+
+        // Glow grows in finale — use star color if colored
+        const glowPhase = Math.max(phase3 > 0.3 ? (phase3 - 0.3) / 0.7 : 0, phase4);
+        if (glowPhase > 0) {
+          const glowR = size * (3 + phase4 * 3) * glowPhase;
+          const glow = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowR);
+          if (star.isColored && star.color) {
+            const { r, g, b } = star.color;
+            glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${0.15 * glowPhase + phase4 * 0.2})`);
+            glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
           } else {
-            brightness = star.baseBrightness + star.baseBrightness * 0.3 * revealProgress;
-            size = star.baseSize + star.baseSize * 0.2 * revealProgress;
+            glow.addColorStop(0, `rgba(180, 200, 220, ${0.12 * glowPhase + phase4 * 0.15})`);
+            glow.addColorStop(1, 'rgba(180, 200, 220, 0)');
           }
-        } else if (phase === 2) {
-          brightness = star.baseBrightness * 0.8 * (1 + phaseProgress * 0.5);
-          size = star.baseSize * (1 + phaseProgress * 0.3);
-        } else if (phase === 3) {
-          brightness = star.baseBrightness * (1 + phaseProgress * 1.5);
-          size = star.baseSize * (1 + phaseProgress * 0.5);
-        } else if (phase === 4) {
-          brightness = star.baseBrightness * (2 + phaseProgress * 2);
-          size = star.baseSize * (1.5 + phaseProgress * 0.5);
-        } else {
-          const burstFactor = 1 + burstProgress * 3;
-          brightness = star.baseBrightness * 4 * burstFactor;
-          size = star.baseSize * 2 * burstFactor;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, glowR, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
         }
-      }
-
-      star.brightness = brightness * twinkle;
-      star.size = size;
-
-      const parallaxX = (mouseX - centerX) * 0.02 * star.depth;
-      const parallaxY = (mouseY - centerY) * 0.02 * star.depth;
-
-      const dx = star.baseX - centerX;
-      const dy = star.baseY - centerY;
-      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
-
-      if (phase === 5 && !star.isCenter) {
-        const moveAway = burstProgress * distFromCenter * 0.3;
-        const angle = Math.atan2(dy, dx);
-        star.x = centerX + Math.cos(angle + cameraRot) * (distFromCenter + moveAway) + cameraX * star.depth + parallaxX;
-        star.y = centerY + Math.sin(angle + cameraRot) * (distFromCenter + moveAway) + cameraY * star.depth + parallaxY;
-      } else if (phase >= 1 && phase <= 4) {
-        const convergeFactor = phase === 4 ? phaseProgress * 0.3 : (phase === 3 ? phaseProgress * 0.15 : 0);
-        const newDist = distFromCenter * (1 - convergeFactor);
-        const angle = Math.atan2(dy, dx);
-        star.x = centerX + Math.cos(angle + cameraRot) * newDist + cameraX * star.depth + parallaxX;
-        star.y = centerY + Math.sin(angle + cameraRot) * newDist + cameraY * star.depth + parallaxY;
-      } else {
-        star.x = star.baseX + cameraX * star.depth + parallaxX;
-        star.y = star.baseY + cameraY * star.depth + parallaxY;
-      }
-    }
-  }
-
-  function drawConnections(phase, phaseProgress) {
-    if (phase < 2) return;
-
-    let connectionAlpha = 0;
-    if (phase === 2) {
-      connectionAlpha = phaseProgress * 0.3;
-    } else if (phase === 3) {
-      connectionAlpha = 0.3 + phaseProgress * 0.3;
-    } else if (phase === 4) {
-      connectionAlpha = 0.6 + phaseProgress * 0.2;
-    } else if (phase === 5) {
-      connectionAlpha = 0.8 + burstProgress * 0.2;
-    }
-
-    const centerStar = stars[0];
-
-    for (let i = 0; i < stars.length; i++) {
-      const star = stars[i];
-      if (star.isCenter) continue;
-
-      if (phase >= 3) {
-        const alpha = connectionAlpha * star.brightness * 0.5;
-        if (alpha <= 0) continue;
-
-        const gradient = ctx.createLinearGradient(star.x, star.y, centerStar.x, centerStar.y);
-        gradient.addColorStop(0, star.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
-        gradient.addColorStop(1, 'rgba(255, 255, 255, ' + (alpha * 0.8) + ')');
 
         ctx.beginPath();
-        ctx.moveTo(star.x, star.y);
-        ctx.lineTo(centerStar.x, centerStar.y);
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = 0.5 + (phase >= 4 ? phaseProgress : 0);
-        ctx.stroke();
-      }
+        ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+        if (star.isColored && star.color) {
+          const { r, g, b } = star.color;
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        } else {
+          ctx.fillStyle = `rgba(200, 215, 230, ${opacity})`;
+        }
+        ctx.fill();
+      });
 
-      if (phase >= 2) {
-        for (let j = 0; j < star.targetConnections.length; j++) {
-          const targetIdx = star.targetConnections[j];
-          if (targetIdx <= i) continue;
-          const target = stars[targetIdx];
+      // --- DRAW COCOON STARS (foreground) ---
+      cocoonStars.forEach((star, i) => {
+        // Cocoon stars slowly orbit
+        star.angle += star.orbitSpeed;
+        const wx = Math.cos(star.angle) * star.dist;
+        const wy = Math.sin(star.angle) * star.dist;
 
-          const alpha = connectionAlpha * 0.4 * Math.min(star.brightness, target.brightness);
-          if (alpha <= 0) continue;
+        // Cocoon stars are at "depth 0" (foreground), move most with parallax
+        const pos = screenPos(wx, wy, 0);
 
-          const gradient = ctx.createLinearGradient(star.x, star.y, target.x, target.y);
-          gradient.addColorStop(0, star.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
-          gradient.addColorStop(1, target.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+        const twinkle = 0.5 + 0.5 * Math.sin(time * star.twinkleSpeed + star.twinkleOffset);
+        
+        // Cocoon stars start dim, brighten slightly as hidden stars appear
+        // White-hot in finale
+        const finaleBoost = 1 + phase4 * 3;
+        const baseOp = Math.min(1, star.baseOpacity * (0.8 + phase2 * 0.4) * finaleBoost);
+        const opacity = baseOp * (0.7 + twinkle * 0.3);
+        const size = star.size * (1 + phase4 * 1.2);
+
+        // Glow — subtle cool blue, stronger in finale
+        if (phase2 > 0.2 || phase4 > 0) {
+          const earlyGlow = phase2 > 0.2 ? (phase2 - 0.2) / 0.8 : 0;
+          const glowR = size * (2.5 + phase4 * 3) * Math.max(earlyGlow, phase4);
+          const glow = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, glowR);
+          glow.addColorStop(0, `rgba(200, 215, 230, ${0.2 * Math.max(earlyGlow, phase4)})`);
+          glow.addColorStop(1, 'rgba(200, 215, 230, 0)');
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, glowR, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        ctx.fill();
+      });
+
+      // --- DRAW CONNECTIONS ---
+      if (phase3 > 0) {
+        const userPos = screenPos(userStar.x, userStar.y, 0.5);
+
+        // Connections from user star to cocoon stars
+        cocoonStars.forEach((star, i) => {
+          const wx = Math.cos(star.angle) * star.dist;
+          const wy = Math.sin(star.angle) * star.dist;
+          const pos = screenPos(wx, wy, 0);
+          
+          const delay = (i / cocoonCount) * 0.2;
+          const connAmt = Math.min(1, Math.max(0, (phase3 - delay) / 0.4));
+          if (connAmt <= 0) return;
 
           ctx.beginPath();
-          ctx.moveTo(star.x, star.y);
-          ctx.lineTo(target.x, target.y);
-          ctx.strokeStyle = gradient;
-          ctx.lineWidth = 0.3;
+          ctx.moveTo(userPos.x, userPos.y);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.strokeStyle = `rgba(180, 200, 220, ${0.25 * connAmt + phase4 * 0.3})`;
+          ctx.lineWidth = (0.8 + phase4 * 1) * window.devicePixelRatio;
           ctx.stroke();
+        });
+
+        // Connections from user star to hidden stars
+        hiddenStars.forEach((star, i) => {
+          const pos = screenPos(star.ox, star.oy, 1);
+          
+          const delay = 0.25 + (star.clusterIdx / cocoonCount) * 0.3 + star.connectDelay * 0.2;
+          const connAmt = Math.min(1, Math.max(0, (phase3 - delay) / 0.6));
+          if (connAmt <= 0) return;
+
+          ctx.beginPath();
+          ctx.moveTo(userPos.x, userPos.y);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.strokeStyle = `rgba(160, 185, 210, ${0.08 * connAmt + phase4 * 0.2})`;
+          ctx.lineWidth = (0.4 + phase4 * 0.5) * window.devicePixelRatio;
+          ctx.stroke();
+        });
+
+        // FINALE: inter-star connections (network mesh)
+        if (phase4 > 0.2) {
+          const meshOpacity = (phase4 - 0.2) / 0.8;
+          for (let i = 0; i < hiddenStars.length; i += 3) {
+            const s1 = hiddenStars[i];
+            const p1 = screenPos(s1.ox, s1.oy, 1);
+            for (let j = 1; j <= 2; j++) {
+              const idx = (i + j) % hiddenStars.length;
+              const s2 = hiddenStars[idx];
+              if (s1.clusterIdx !== s2.clusterIdx) continue;
+              const p2 = screenPos(s2.ox, s2.oy, 1);
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = `rgba(160, 185, 210, ${0.06 * meshOpacity})`;
+              ctx.lineWidth = 0.3 * window.devicePixelRatio;
+              ctx.stroke();
+            }
+          }
         }
       }
+
+      // --- DRAW USER STAR (center) ---
+      if (userStar) {
+        userStar.pulse += 0.025 + phase4 * 0.03;
+        const pos = screenPos(userStar.x, userStar.y, 0.5);
+        
+        const pulseScale = 1 + 0.25 * Math.sin(userStar.pulse);
+        const baseSize = userStar.size * window.devicePixelRatio * 0.5;
+        const size = baseSize * pulseScale * (1 + phase4 * 1.2);
+
+        // Multi-layer glow — cool white/silver
+        const glowLayers = [
+          { r: size * 10, color: 'rgba(180, 200, 220, 0.04)', phase: 0 },
+          { r: size * 6, color: 'rgba(180, 200, 220, 0.08)', phase: phase2 * 0.5 },
+          { r: size * 4, color: 'rgba(200, 215, 230, 0.12)', phase: phase3 * 0.8 },
+          { r: size * 3, color: 'rgba(200, 215, 230, 0.15)', phase: phase4 },
+        ];
+        
+        glowLayers.forEach(layer => {
+          const r = layer.r * (1 + layer.phase * 1.5);
+          const glow = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, r);
+          glow.addColorStop(0, layer.color);
+          glow.addColorStop(1, 'rgba(180, 200, 220, 0)');
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
+        });
+
+        // Core
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = phase4 > 0.3 ? 'rgba(220, 230, 240, 1)' : 'rgba(180, 200, 220, 0.9)';
+        ctx.shadowColor = 'rgba(180, 200, 220, 0.5)';
+        ctx.shadowBlur = 20 + phase3 * 20 + phase4 * 30;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Inner bright core
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(240, 245, 250, 0.9)';
+        ctx.fill();
+      }
+
+      // --- PHASE 4: Central light burst with iridescent rings ---
+      if (phase4 > 0) {
+        const userPos = screenPos(userStar.x, userStar.y, 0.5);
+        
+        const burstR = 220 * window.devicePixelRatio * phase4;
+        const grad = ctx.createRadialGradient(userPos.x, userPos.y, 0, userPos.x, userPos.y, burstR);
+        grad.addColorStop(0, `rgba(255, 255, 255, ${0.2 * phase4})`);
+        grad.addColorStop(0.15, `rgba(100, 180, 230, ${0.15 * phase4})`);
+        grad.addColorStop(0.35, `rgba(170, 150, 220, ${0.12 * phase4})`);
+        grad.addColorStop(0.55, `rgba(220, 160, 180, ${0.1 * phase4})`);
+        grad.addColorStop(0.75, `rgba(130, 210, 190, ${0.08 * phase4})`);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(userPos.x, userPos.y, burstR, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Iridescent expanding ring
+        if (phase4 > 0.25) {
+          const ringR = 320 * window.devicePixelRatio * (phase4 - 0.25) / 0.75;
+          const ringGrad = ctx.createRadialGradient(userPos.x, userPos.y, ringR * 0.7, userPos.x, userPos.y, ringR * 1.15);
+          ringGrad.addColorStop(0, 'rgba(100, 180, 230, 0)');
+          ringGrad.addColorStop(0.2, `rgba(100, 180, 230, ${0.08 * (phase4 - 0.25) / 0.75})`);
+          ringGrad.addColorStop(0.4, `rgba(170, 150, 220, ${0.1 * (phase4 - 0.25) / 0.75})`);
+          ringGrad.addColorStop(0.6, `rgba(220, 160, 180, ${0.08 * (phase4 - 0.25) / 0.75})`);
+          ringGrad.addColorStop(0.8, `rgba(130, 210, 190, ${0.06 * (phase4 - 0.25) / 0.75})`);
+          ringGrad.addColorStop(1, 'rgba(230, 190, 140, 0)');
+          ctx.beginPath();
+          ctx.arc(userPos.x, userPos.y, ringR * 1.15, 0, Math.PI * 2);
+          ctx.fillStyle = ringGrad;
+          ctx.fill();
+        }
+
+        // Second outer ring for depth
+        if (phase4 > 0.5) {
+          const ring2R = 450 * window.devicePixelRatio * (phase4 - 0.5) / 0.5;
+          const ring2Grad = ctx.createRadialGradient(userPos.x, userPos.y, ring2R * 0.85, userPos.x, userPos.y, ring2R * 1.1);
+          ring2Grad.addColorStop(0, 'rgba(170, 150, 220, 0)');
+          ring2Grad.addColorStop(0.3, `rgba(170, 150, 220, ${0.06 * (phase4 - 0.5) / 0.5})`);
+          ring2Grad.addColorStop(0.6, `rgba(220, 160, 180, ${0.05 * (phase4 - 0.5) / 0.5})`);
+          ring2Grad.addColorStop(1, 'rgba(100, 180, 230, 0)');
+          ctx.beginPath();
+          ctx.arc(userPos.x, userPos.y, ring2R * 1.1, 0, Math.PI * 2);
+          ctx.fillStyle = ring2Grad;
+          ctx.fill();
+        }
+      }
+
+      // --- WOW TEXT ---
+      if (phase4 > 0.5) {
+        wowLayer.classList.add('active');
+      } else {
+        wowLayer.classList.remove('active');
+      }
+
+      requestAnimationFrame(animate);
     }
-  }
 
-  function drawBurst(time) {
-    if (burstProgress <= 0) return;
-
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const maxRadius = Math.max(width, height) * 1.5;
-
-    const ringCount = 5;
-    for (let i = 0; i < ringCount; i++) {
-      const ringProgress = Math.max(0, Math.min(1, (burstProgress - i * 0.15) / 0.7));
-      if (ringProgress <= 0) continue;
-
-      const radius = ringProgress * maxRadius;
-      const alpha = (1 - ringProgress) * 0.5;
-
-      const colorIdx = i % colors.length;
-      const nextColorIdx = (i + 1) % colors.length;
-
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = colors[colorIdx] + Math.floor(alpha * 255).toString(16).padStart(2, '0');
-      ctx.lineWidth = 3 - i * 0.4;
-      ctx.stroke();
-    }
-
-    if (burstProgress > 0.3) {
-      const glowProgress = (burstProgress - 0.3) / 0.7;
-      const glowRadius = glowProgress * Math.min(width, height) * 0.8;
-
-      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
-      gradient.addColorStop(0, 'rgba(34, 211, 238, ' + (0.15 * (1 - glowProgress * 0.5)) + ')');
-      gradient.addColorStop(0.3, 'rgba(167, 139, 250, ' + (0.1 * (1 - glowProgress * 0.5)) + ')');
-      gradient.addColorStop(0.6, 'rgba(251, 191, 36, ' + (0.08 * (1 - glowProgress * 0.5)) + ')');
-      gradient.addColorStop(1, 'rgba(251, 113, 133, 0)');
-
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
-      ctx.fillStyle = gradient;
-      ctx.fill();
-    }
-  }
-
-  function drawStars(time) {
-    const phase = getPhase();
-    const phaseProgress = easeInOutCubic(getPhaseProgress());
-
-    drawConnections(phase, phaseProgress);
-
-    for (let i = 0; i < stars.length; i++) {
-      const star = stars[i];
-      if (star.brightness <= 0.01) continue;
-
-      const glowSize = star.size * 3;
-      const gradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, glowSize);
-
-      const alpha = Math.min(1, star.brightness);
-      const alphaStr = Math.floor(alpha * 255).toString(16).padStart(2, '0');
-      const lowAlphaStr = Math.floor(alpha * 50).toString(16).padStart(2, '0');
-
-      gradient.addColorStop(0, star.color + alphaStr);
-      gradient.addColorStop(0.3, star.color + lowAlphaStr);
-      gradient.addColorStop(1, star.color + '00');
-
-      ctx.beginPath();
-      ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
-      ctx.fillStyle = gradient;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-      ctx.fillStyle = star.color;
-      ctx.globalAlpha = Math.min(1, star.brightness);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-
-    drawBurst(time);
-  }
-
-  let lastTime = 0;
-  function animate(time) {
-    const delta = time - lastTime;
-    lastTime = time;
-
-    ctx.clearRect(0, 0, width, height);
-
-    const bgGradient = ctx.createRadialGradient(
-      width / 2, height / 2, 0,
-      width / 2, height / 2, Math.max(width, height) * 0.7
-    );
-    bgGradient.addColorStop(0, '#0F1524');
-    bgGradient.addColorStop(1, '#0A0E17');
-    ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, width, height);
-
-    updateStars(time);
-    drawStars(time);
-
+    // Init
+    resize();
+    window.addEventListener('resize', resize);
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    updateScrollProgress();
     requestAnimationFrame(animate);
-  }
+  })();
 
-  function updateScrollProgress() {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    scrollProgress = Math.min(1, Math.max(0, scrollTop / docHeight));
+  // Scroll reveal animation
+  const revealElements = document.querySelectorAll('.reveal');
+  
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -80px 0px'
+  };
 
-    const easterEggSection = document.querySelector('.easter-egg-section');
-    const easterEggContent = document.querySelector('.easter-egg-content');
-    const burstRings = document.querySelectorAll('.burst-ring');
-
-    if (easterEggSection && easterEggContent) {
-      const rect = easterEggSection.getBoundingClientRect();
-      const sectionProgress = Math.min(1, Math.max(0, 1 - rect.top / window.innerHeight));
-
-      if (sectionProgress > 0.3) {
-        easterEggContent.classList.add('active');
-        if (!easterEggActive) {
-          easterEggActive = true;
-          burstRings.forEach(ring => ring.classList.add('active'));
-        }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
       }
+    });
+  }, observerOptions);
 
-      burstProgress = Math.min(1, Math.max(0, (sectionProgress - 0.2) / 0.6));
+  revealElements.forEach(el => observer.observe(el));
+
+  // Parallax effect on mouse move
+  document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 30;
+    const y = (e.clientY / window.innerHeight - 0.5) * 30;
+    
+    const orb1 = document.querySelector('.orb-1');
+    const orb2 = document.querySelector('.orb-2');
+    const orb3 = document.querySelector('.orb-3');
+    
+    if (orb1) orb1.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+    if (orb2) orb2.style.transform = `translate(${x * -0.4}px, ${y * -0.4}px)`;
+    if (orb3) orb3.style.transform = `translate(${x * 0.2}px, ${y * -0.2}px)`;
+
+    // Title parallax shift effect
+    const shift1s = document.querySelectorAll('.shift-1');
+    const shift2 = document.querySelector('.shift-2');
+    shift1s.forEach(el => {
+      el.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px)`;
+    });
+    if (shift2) {
+      shift2.style.transform = `translate(${x * 0.2 + 4}px, ${y * 0.2 + 2}px)`;
     }
-  }
+  });
 
-  function handleMouseMove(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  }
-
-  window.addEventListener('resize', resize);
-  window.addEventListener('scroll', updateScrollProgress);
-  window.addEventListener('mousemove', handleMouseMove);
-
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+  // Smooth scroll for nav links
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', (e) => {
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
+      const target = document.querySelector(link.getAttribute('href'));
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' });
       }
     });
   });
 
-  resize();
-  updateScrollProgress();
-  requestAnimationFrame(animate);
-})();
+  // Scroll-based grid perspective shift
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const grid = document.querySelector('.grid-overlay');
+    if (grid) {
+      const rotation = Math.min(scrollY * 0.01, 5);
+      grid.style.transform = `perspective(1000px) rotateX(${rotation}deg)`;
+      grid.style.transformOrigin = 'center top';
+    }
+  });
 </script>
+
 </body>
 </html>
