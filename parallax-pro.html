@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视差 PARALLAX - Change your angle, change your world.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep-space: #0A0E17;
+    --glow-cyan: #22D3EE;
+    --glow-violet: #A78BFA;
+    --glow-amber: #FBBF24;
+    --glow-rose: #FB7185;
+    --glow-mint: #6EE7B7;
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg-strong: rgba(255, 255, 255, 0.08);
+    --font-title: 'Orbitron', sans-serif;
+    --font-ui: 'Space Grotesk', 'Inter', sans-serif;
+    --font-body: 'Inter', 'Noto Sans SC', sans-serif;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--deep-space);
+    color: #fff;
+    overflow-x: hidden;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #starCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .content-wrapper {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Nav */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 14, 23, 0.6);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 4px;
+  }
+
+  .nav-logo-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .nav-logo-lines span {
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, var(--glow-cyan), var(--glow-violet));
+    border-radius: 2px;
+  }
+
+  .nav-logo-lines span:nth-child(1) { width: 24px; }
+  .nav-logo-lines span:nth-child(2) { width: 16px; margin-left: 8px; }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .nav-links a:hover {
+    color: #fff;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--glow-cyan);
+    transition: width 0.3s ease;
+  }
+
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+
+  .nav-demo {
+    padding: 8px 20px;
+    border: 1px solid var(--glow-cyan);
+    border-radius: 100px;
+    color: var(--glow-cyan) !important;
+    font-weight: 500;
+    transition: all 0.3s ease !important;
+  }
+
+  .nav-demo:hover {
+    background: rgba(34, 211, 238, 0.1);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+  }
+
+  .nav-demo::after { display: none !important; }
+
+  .nav-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .nav-author-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--glow-violet), var(--glow-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-title);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--deep-space);
+  }
+
+  .nav-author-text span {
+    display: block;
+  }
+
+  .nav-author-text .name {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+  }
+
+  .nav-author-text .event {
+    font-size: 10px;
+    color: var(--glow-amber);
+  }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 100px 40px 80px;
+    text-align: center;
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-title);
+    font-size: 14px;
+    letter-spacing: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+
+  .hero-title {
+    font-family: var(--font-title);
+    font-size: clamp(80px, 18vw, 220px);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 32px;
+    background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.3));
+    letter-spacing: 8px;
+  }
+
+  .hero-slogan {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 40px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .hero-slogan-en {
+    font-family: var(--font-ui);
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+
+  .hero-slogan-zh {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 2px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-ui);
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: rgba(255, 255, 255, 0.4);
+    animation: float 2s ease-in-out infinite;
+  }
+
+  .scroll-hint-arrow {
+    font-size: 20px;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  .easter-egg-hint {
+    position: absolute;
+    bottom: 100px;
+    right: 40px;
+    font-size: 12px;
+    color: var(--glow-amber);
+    opacity: 0.7;
+    font-family: var(--font-ui);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+
+  /* Section Common */
+  .section {
+    min-height: 100vh;
+    padding: 120px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .section-inner {
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  .section-label {
+    font-family: var(--font-title);
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--glow-cyan);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--font-title);
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 700;
+    margin-bottom: 24px;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-desc {
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 640px;
+    line-height: 1.8;
+  }
+
+  /* Glass Card */
+  .glass-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  }
+
+  /* Concept Section */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .concept-visual {
+    position: relative;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .concept-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    position: relative;
+    animation: rotate 30s linear infinite;
+  }
+
+  .concept-circle::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow-cyan) 0%, transparent 70%);
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  }
+
+  .concept-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--glow-violet);
+    box-shadow: 0 0 20px var(--glow-violet);
+  }
+
+  .concept-dot:nth-child(1) { top: -6px; left: 50%; transform: translateX(-50%); }
+  .concept-dot:nth-child(2) { bottom: -6px; left: 50%; transform: translateX(-50%); background: var(--glow-amber); box-shadow: 0 0 20px var(--glow-amber); }
+  .concept-dot:nth-child(3) { left: -6px; top: 50%; transform: translateY(-50%); background: var(--glow-rose); box-shadow: 0 0 20px var(--glow-rose); }
+  .concept-dot:nth-child(4) { right: -6px; top: 50%; transform: translateY(-50%); background: var(--glow-mint); box-shadow: 0 0 20px var(--glow-mint); }
+
+  .concept-line {
+    position: absolute;
+    width: 150px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--glow-cyan), transparent);
+    top: 50%;
+    transform-origin: left center;
+  }
+
+  .concept-line:nth-child(5) { transform: translateY(-50%) rotate(30deg); left: calc(50% + 100px); }
+  .concept-line:nth-child(6) { transform: translateY(-50%) rotate(-30deg); left: calc(50% + 100px); background: linear-gradient(90deg, var(--glow-violet), transparent); }
+
+  .concept-highlight {
+    color: var(--glow-cyan);
+    font-weight: 600;
+  }
+
+  /* Path Section */
+  .paths-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .path-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 36px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .path-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: var(--glass-bg-strong);
+  }
+
+  .path-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+  }
+
+  .path-card.vertical::before {
+    background: linear-gradient(180deg, var(--glow-cyan), var(--glow-violet));
+  }
+
+  .path-card.horizontal::before {
+    background: linear-gradient(180deg, var(--glow-amber), var(--glow-rose));
+  }
+
+  .path-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  .path-card.vertical .path-icon {
+    background: rgba(34, 211, 238, 0.15);
+    color: var(--glow-cyan);
+  }
+
+  .path-card.horizontal .path-icon {
+    background: rgba(251, 191, 36, 0.15);
+    color: var(--glow-amber);
+  }
+
+  .path-title {
+    font-family: var(--font-title);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .path-desc {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .path-features {
+    list-style: none;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .path-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .path-features li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .path-card.vertical .path-features li::before {
+    background: var(--glow-cyan);
+    box-shadow: 0 0 8px var(--glow-cyan);
+  }
+
+  .path-card.horizontal .path-features li::before {
+    background: var(--glow-amber);
+    box-shadow: 0 0 8px var(--glow-amber);
+  }
+
+  /* Dialogue Section */
+  .dialogue-container {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .dialogue-round {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 28px 32px;
+    transition: all 0.3s ease;
+  }
+
+  .dialogue-round:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .dialogue-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .dialogue-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--glow-violet), var(--glow-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--deep-space);
+    flex-shrink: 0;
+  }
+
+  .dialogue-label {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--glow-cyan);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .dialogue-question {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+
+  .dialogue-answer {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    padding-left: 48px;
+    position: relative;
+  }
+
+  .dialogue-answer::before {
+    content: '→';
+    position: absolute;
+    left: 24px;
+    color: var(--glow-amber);
+  }
+
+  /* Users Section */
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .user-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    transition: all 0.4s ease;
+  }
+
+  .user-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .user-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+
+  .user-card:nth-child(1) .user-avatar { background: rgba(34, 211, 238, 0.15); }
+  .user-card:nth-child(2) .user-avatar { background: rgba(167, 139, 250, 0.15); }
+  .user-card:nth-child(3) .user-avatar { background: rgba(251, 191, 36, 0.15); }
+
+  .user-name {
+    font-family: var(--font-title);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .user-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    margin-bottom: 16px;
+    font-family: var(--font-ui);
+  }
+
+  .user-card:nth-child(1) .user-tag { background: rgba(34, 211, 238, 0.1); color: var(--glow-cyan); }
+  .user-card:nth-child(2) .user-tag { background: rgba(167, 139, 250, 0.1); color: var(--glow-violet); }
+  .user-card:nth-child(3) .user-tag { background: rgba(251, 191, 36, 0.1); color: var(--glow-amber); }
+
+  .user-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.7;
+  }
+
+  .user-pain {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--glass-border);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Value Section */
+  .value-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 48px;
+  }
+
+  .value-item {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .value-item:hover {
+    background: var(--glass-bg);
+  }
+
+  .value-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .value-item:nth-child(1) .value-icon { background: rgba(34, 211, 238, 0.15); color: var(--glow-cyan); }
+  .value-item:nth-child(2) .value-icon { background: rgba(167, 139, 250, 0.15); color: var(--glow-violet); }
+  .value-item:nth-child(3) .value-icon { background: rgba(251, 191, 36, 0.15); color: var(--glow-amber); }
+  .value-item:nth-child(4) .value-icon { background: rgba(110, 231, 183, 0.15); color: var(--glow-mint); }
+
+  .value-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .value-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.7;
+  }
+
+  .name-origin {
+    margin-top: 48px;
+    padding: 32px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .name-origin::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(167, 139, 250, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .name-origin-title {
+    font-family: var(--font-title);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .name-origin-title span {
+    background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .name-origin-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  /* Easter Egg Section */
+  .easter-egg-section {
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .easter-egg-content {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 2;
+  }
+
+  .easter-egg-content.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .easter-egg-title {
+    font-family: var(--font-title);
+    font-size: clamp(80px, 18vw, 200px);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 60px rgba(34, 211, 238, 0.5)) drop-shadow(0 0 120px rgba(167, 139, 250, 0.3));
+    letter-spacing: 8px;
+  }
+
+  .easter-egg-slogan {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 32px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+
+  .easter-egg-slogan-en {
+    font-family: var(--font-ui);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .easter-egg-slogan-zh {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .easter-egg-desc {
+    max-width: 600px;
+    margin: 0 auto 48px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.8;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+
+  .easter-egg-footer {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .easter-egg-footer span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .easter-egg-footer .highlight {
+    color: var(--glow-amber);
+  }
+
+  /* Burst rings */
+  .burst-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .burst-ring.active {
+    animation: burst-expand 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .burst-ring:nth-child(1) {
+    width: 0;
+    height: 0;
+    border: 2px solid var(--glow-cyan);
+    animation-delay: 0s;
+  }
+
+  .burst-ring:nth-child(2) {
+    width: 0;
+    height: 0;
+    border: 2px solid var(--glow-violet);
+    animation-delay: 0.2s;
+  }
+
+  .burst-ring:nth-child(3) {
+    width: 0;
+    height: 0;
+    border: 2px solid var(--glow-amber);
+    animation-delay: 0.4s;
+  }
+
+  .burst-ring:nth-child(4) {
+    width: 0;
+    height: 0;
+    border: 2px solid var(--glow-rose);
+    animation-delay: 0.6s;
+  }
+
+  .burst-ring:nth-child(5) {
+    width: 0;
+    height: 0;
+    border: 1px solid var(--glow-mint);
+    animation-delay: 0.8s;
+  }
+
+  @keyframes burst-expand {
+    0% {
+      width: 0;
+      height: 0;
+      opacity: 1;
+    }
+    100% {
+      width: 200vmax;
+      height: 200vmax;
+      opacity: 0;
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .nav {
+      padding: 14px 24px;
+    }
+
+    .nav-links {
+      gap: 20px;
+    }
+
+    .nav-author-text {
+      display: none;
+    }
+
+    .concept-grid,
+    .value-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .paths-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .users-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section {
+      padding: 100px 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links li:not(:last-child) {
+      display: none;
+    }
+
+    .nav {
+      padding: 12px 16px;
+    }
+
+    .hero {
+      padding: 80px 20px 60px;
+    }
+
+    .hero-subtitle {
+      font-size: 12px;
+      letter-spacing: 8px;
+    }
+
+    .hero-slogan {
+      padding: 12px 24px;
+      font-size: 13px;
+    }
+
+    .easter-egg-hint {
+      right: 20px;
+      bottom: 80px;
+      font-size: 10px;
+    }
+
+    .glass-card {
+      padding: 24px;
+    }
+
+    .path-card {
+      padding: 24px;
+    }
+
+    .dialogue-round {
+      padding: 20px;
+    }
+
+    .dialogue-answer {
+      padding-left: 0;
+    }
+
+    .dialogue-answer::before {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+<canvas id="starCanvas"></canvas>
+
+<div class="content-wrapper">
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-lines">
+        <span></span>
+        <span></span>
+      </div>
+      <span>PARALLAX</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#concept">概念</a></li>
+      <li><a href="#path">路径</a></li>
+      <li><a href="#dialogue">流程</a></li>
+      <li><a href="#users">用户</a></li>
+      <li><a href="#value">价值</a></li>
+      <li><a href="#easter-egg" class="nav-demo">DEMO</a></li>
+    </ul>
+    <div class="nav-author">
+      <div class="nav-author-avatar">E</div>
+      <div class="nav-author-text">
+        <span class="name">鸡蛋摊摊主 / Eggseller</span>
+        <span class="event">TRAE AI 创造力大赛</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-subtitle">P A R A L L A X</div>
+    <h1 class="hero-title">视差</h1>
+    <div class="hero-slogan">
+      <span class="hero-slogan-en">Change your angle, change your world.</span>
+      <span class="hero-slogan-zh">更易视角，更易世界。</span>
+    </div>
+    <div class="easter-egg-hint">✨ 下滑有彩蛋</div>
+    <div class="scroll-hint">
+      <span class="scroll-hint-arrow">↓</span>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <!-- Concept -->
+  <section class="section" id="concept">
+    <div class="section-inner">
+      <div class="concept-grid">
+        <div class="concept-visual">
+          <div class="concept-circle">
+            <div class="concept-dot"></div>
+            <div class="concept-dot"></div>
+            <div class="concept-dot"></div>
+            <div class="concept-dot"></div>
+            <div class="concept-line"></div>
+            <div class="concept-line"></div>
+          </div>
+        </div>
+        <div class="concept-content">
+          <div class="section-label">01 / CONCEPT</div>
+          <h2 class="section-title">什么是视差？</h2>
+          <p class="section-desc">
+            视差，是一种<span class="concept-highlight">不靠蛮力破壁，只凭视角偏移</span>的认知方式。
+          </p>
+          <p class="section-desc" style="margin-top: 16px;">
+            当你被困在信息茧房中，不需要撞破墙壁，只需要轻轻移动一下你的观察位置——那些原本被遮蔽的星星，就会突然出现在你的视野里。
+          </p>
+          <p class="section-desc" style="margin-top: 16px;">
+            视差不是给你更多信息，而是给你<span class="concept-highlight">另一个角度</span>。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Path -->
+  <section class="section" id="path">
+    <div class="section-inner">
+      <div class="section-label">02 / PATH</div>
+      <h2 class="section-title">破茧路径</h2>
+      <p class="section-desc">
+        两条路径，两种方式，带你走出信息茧房。垂直深潜挖掘深度，水平桥接拓展广度。
+      </p>
+      <div class="paths-grid">
+        <div class="path-card vertical">
+          <div class="path-icon">↓</div>
+          <h3 class="path-title">垂直深潜</h3>
+          <p class="path-desc">
+            沿着一个主题，向下挖掘三层认知深度。从表面信息到底层逻辑，从观点到论据，从共识到争议。
+          </p>
+          <ul class="path-features">
+            <li>第一层：大众共识与主流观点</li>
+            <li>第二层：专业视角与深度分析</li>
+            <li>第三层：前沿争议与未知领域</li>
+          </ul>
+        </div>
+        <div class="path-card horizontal">
+          <div class="path-icon">↔</div>
+          <h3 class="path-title">水平桥接</h3>
+          <p class="path-desc">
+            在不同领域之间建立意想不到的连接。跨界的灵感碰撞，往往是创新的源泉。
+          </p>
+          <ul class="path-features">
+            <li>学科交叉：物理×心理学×艺术</li>
+            <li>文化映射：东方哲学×西方科学</li>
+            <li>时空穿越：历史智慧×未来趋势</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dialogue -->
+  <section class="section" id="dialogue">
+    <div class="section-inner">
+      <div class="section-label">03 / DIALOGUE</div>
+      <h2 class="section-title">苏格拉底式对话</h2>
+      <p class="section-desc">
+        通过三轮追问，逐步建立你的认知画像。每一个问题，都是一次视角的偏移。
+      </p>
+      <div class="dialogue-container">
+        <div class="dialogue-round">
+          <div class="dialogue-header">
+            <div class="dialogue-number">1</div>
+            <div class="dialogue-label">ROUND ONE</div>
+          </div>
+          <div class="dialogue-question">「你对这个话题有什么看法？」</div>
+          <div class="dialogue-answer">
+            从你的回答中，我们捕捉你的初始立场、关注焦点和思维惯性。这是认知画像的起点。
+          </div>
+        </div>
+        <div class="dialogue-round">
+          <div class="dialogue-header">
+            <div class="dialogue-number">2</div>
+            <div class="dialogue-label">ROUND TWO</div>
+          </div>
+          <div class="dialogue-question">「如果站在对立面，你会怎么反驳自己？」</div>
+          <div class="dialogue-answer">
+            这是第一次视角偏移。强迫你走出舒适区，去理解你原本不认同的观点。
+          </div>
+        </div>
+        <div class="dialogue-round">
+          <div class="dialogue-header">
+            <div class="dialogue-number">3</div>
+            <div class="dialogue-label">ROUND THREE</div>
+          </div>
+          <div class="dialogue-question">「假如有一个完全中立的第三方，他们会怎么看？」</div>
+          <div class="dialogue-answer">
+            这是第二次视角偏移。超越二元对立，进入更高维度的认知空间。你会发现，真理往往不在两端，而在更高处。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Users -->
+  <section class="section" id="users">
+    <div class="section-inner">
+      <div class="section-label">04 / USERS</div>
+      <h2 class="section-title">为谁而造</h2>
+      <p class="section-desc">
+        视差为那些不愿被定义、不甘被局限的人而造。他们相信，世界比算法推荐的更广阔。
+      </p>
+      <div class="users-grid">
+        <div class="user-card">
+          <div class="user-avatar">👀</div>
+          <h3 class="user-name">年轻内容消费者</h3>
+          <span class="user-tag">Gen Z</span>
+          <p class="user-desc">
+            每天刷着信息流，却感到越来越焦虑。明明看了很多，却好像什么都没记住。想跳出算法的掌控，却不知道从何开始。
+          </p>
+          <div class="user-pain">
+            "我感觉自己被困在一个透明的泡泡里，看得见外面，却出不去。"
+          </div>
+        </div>
+        <div class="user-card">
+          <div class="user-avatar">📚</div>
+          <h3 class="user-name">终身学习者</h3>
+          <span class="user-tag">CURIOUS</span>
+          <p class="user-desc">
+            对世界充满好奇，什么都想了解一点。但知识越学越碎片化，缺少一个能把一切串联起来的框架。
+          </p>
+          <div class="user-pain">
+            "我读了一百本书，却还是说不清世界到底是怎么运转的。"
+          </div>
+        </div>
+        <div class="user-card">
+          <div class="user-avatar">🚀</div>
+          <h3 class="user-name">跨界探索者</h3>
+          <span class="user-tag">CREATOR</span>
+          <p class="user-desc">
+            不满足于一个领域，总想在不同学科之间找到连接。相信真正的创新发生在边界，而不是中心。
+          </p>
+          <div class="user-pain">
+            "最有趣的问题，从来不属于任何一个单一学科。"
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Value -->
+  <section class="section" id="value">
+    <div class="section-inner">
+      <div class="section-label">05 / VALUE</div>
+      <h2 class="section-title">为什么是视差</h2>
+      <p class="section-desc">
+        我们不生产信息，我们只是视角的搬运工。
+      </p>
+      <div class="value-grid">
+        <div class="value-item">
+          <div class="value-icon">🔭</div>
+          <div>
+            <h4 class="value-title">视角偏移而非信息堆砌</h4>
+            <p class="value-desc">
+              大多数产品给你更多内容，视差给你另一个角度。我们相信，认知的升级靠的是维度的提升，而不是信息的累积。
+            </p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon">🧩</div>
+          <div>
+            <h4 class="value-title">对话驱动而非被动接收</h4>
+            <p class="value-desc">
+              你不是在消费内容，你是在参与一场对话。每一个问题都在重塑你的认知，每一次回答都在定义你自己。
+            </p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon">🌈</div>
+          <div>
+            <h4 class="value-title">拥抱模糊而非虚假确定</h4>
+            <p class="value-desc">
+              世界本来就是复杂的、灰色的、不确定的。我们不提供标准答案，我们帮你学会与不确定性共处。
+            </p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon">🌱</div>
+          <div>
+            <h4 class="value-title">认知成长而非即时满足</h4>
+            <p class="value-desc">
+              这不是一个让你爽的产品，这是一个让你成长的产品。成长可能不舒服，但它值得。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="name-origin">
+        <h3 class="name-origin-title">
+          名字的由来 — <span>PARALLAX</span>
+        </h3>
+        <p class="name-origin-text">
+          视差（Parallax），是一个天文学概念。指的是从不同位置观察同一个物体时，物体在视野中的位置会发生偏移。科学家正是利用这种效应，测量出了恒星与我们的距离。
+          <br><br>
+          我们相信，认知也是如此。你与真相的距离，往往只差一个视角的偏移。
+          <br><br>
+          <strong style="color: rgba(255,255,255,0.8);">我们相信，每一个人都值得拥有更广阔的视野。</strong>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Easter Egg -->
+  <section class="easter-egg-section" id="easter-egg">
+    <div class="burst-ring"></div>
+    <div class="burst-ring"></div>
+    <div class="burst-ring"></div>
+    <div class="burst-ring"></div>
+    <div class="burst-ring"></div>
+    <div class="easter-egg-content">
+      <h1 class="easter-egg-title">视差</h1>
+      <div class="easter-egg-slogan">
+        <div class="easter-egg-slogan-en">Change your angle, change your world.</div>
+        <div class="easter-egg-slogan-zh">更易视角，更易世界。</div>
+      </div>
+      <p class="easter-egg-desc">
+        感谢你一路看到这里。
+        <br><br>
+        视差不仅仅是一个产品，它是一种看待世界的方式。
+        <br>
+        当你愿意移动你的视角，你就已经走出了茧房。
+        <br><br>
+        愿你永远保持好奇，永远愿意从另一个角度看世界。
+      </p>
+      <div class="easter-egg-footer">
+        <span>👨‍🍳 作者：<span class="highlight">鸡蛋摊摊主 / Eggseller</span></span>
+        <span>🏆 <span class="highlight">TRAE AI 创造力大赛</span></span>
+        <span>✨ 2025</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('starCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let width, height;
+  let stars = [];
+  const starCount = 200;
+  let mouseX = 0, mouseY = 0;
+  let scrollProgress = 0;
+  let cameraX = 0, cameraY = 0, cameraRot = 0;
+  let targetCameraX = 0, targetCameraY = 0, targetCameraRot = 0;
+  let burstProgress = 0;
+  let easterEggActive = false;
+
+  const colors = [
+    '#22D3EE',
+    '#A78BFA',
+    '#FB7185',
+    '#6EE7B7',
+    '#FBBF24'
+  ];
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * window.devicePixelRatio;
+    canvas.height = height * window.devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    initStars();
+  }
+
+  function initStars() {
+    stars = [];
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const maxDist = Math.min(width, height) * 0.45;
+
+    for (let i = 0; i < starCount; i++) {
+      const isCenter = i === 0;
+      const isColored = Math.random() < 0.3;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = isCenter ? 0 : Math.random() * maxDist + 20;
+
+      stars.push({
+        x: isCenter ? centerX : centerX + Math.cos(angle) * dist,
+        y: isCenter ? centerY : centerY + Math.sin(angle) * dist,
+        baseX: 0,
+        baseY: 0,
+        size: isCenter ? 3 : Math.random() * 1.5 + 0.5,
+        baseSize: 0,
+        color: isCenter ? '#ffffff' : (isColored ? colors[Math.floor(Math.random() * colors.length)] : '#ffffff'),
+        brightness: isCenter ? 1 : (isColored ? 0.4 : 0.2),
+        baseBrightness: 0,
+        twinkleSpeed: Math.random() * 2 + 0.5,
+        twinkleOffset: Math.random() * Math.PI * 2,
+        depth: Math.random() * 0.5 + 0.5,
+        isCenter: isCenter,
+        isColored: isColored,
+        hidden: Math.random() < 0.4,
+        targetConnections: [],
+        connections: []
+      });
+
+      stars[i].baseX = stars[i].x;
+      stars[i].baseY = stars[i].y;
+      stars[i].baseSize = stars[i].size;
+      stars[i].baseBrightness = stars[i].brightness;
+    }
+
+    for (let i = 0; i < stars.length; i++) {
+      if (stars[i].isCenter) continue;
+      const numConnections = Math.floor(Math.random() * 3) + 1;
+      for (let j = 0; j < numConnections; j++) {
+        const targetIdx = Math.floor(Math.random() * stars.length);
+        if (targetIdx !== i && !stars[i].targetConnections.includes(targetIdx)) {
+          stars[i].targetConnections.push(targetIdx);
+        }
+      }
+    }
+  }
+
+  function getPhase() {
+    if (scrollProgress < 0.15) {
+      return 0;
+    } else if (scrollProgress < 0.35) {
+      return 1;
+    } else if (scrollProgress < 0.55) {
+      return 2;
+    } else if (scrollProgress < 0.75) {
+      return 3;
+    } else if (scrollProgress < 0.9) {
+      return 4;
+    } else {
+      return 5;
+    }
+  }
+
+  function getPhaseProgress() {
+    if (scrollProgress < 0.15) {
+      return scrollProgress / 0.15;
+    } else if (scrollProgress < 0.35) {
+      return (scrollProgress - 0.15) / 0.2;
+    } else if (scrollProgress < 0.55) {
+      return (scrollProgress - 0.35) / 0.2;
+    } else if (scrollProgress < 0.75) {
+      return (scrollProgress - 0.55) / 0.2;
+    } else if (scrollProgress < 0.9) {
+      return (scrollProgress - 0.75) / 0.15;
+    } else {
+      return (scrollProgress - 0.9) / 0.1;
+    }
+  }
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function updateStars(time) {
+    const phase = getPhase();
+    const phaseProgress = easeInOutCubic(getPhaseProgress());
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    if (phase === 0) {
+      targetCameraX = 0;
+      targetCameraY = 0;
+      targetCameraRot = 0;
+    } else if (phase >= 1 && phase <= 3) {
+      const moveProgress = phase === 1 ? phaseProgress : (phase === 2 ? 1 : (1 - phaseProgress * 0.3));
+      targetCameraX = Math.sin(time * 0.0001) * 30 * moveProgress + 80 * moveProgress;
+      targetCameraY = Math.cos(time * 0.00015) * 20 * moveProgress - 40 * moveProgress;
+      targetCameraRot = 0.08 * moveProgress;
+    } else if (phase === 4) {
+      targetCameraX = 40 * (1 - phaseProgress);
+      targetCameraY = -20 * (1 - phaseProgress);
+      targetCameraRot = 0.04 * (1 - phaseProgress);
+    } else {
+      targetCameraX = 0;
+      targetCameraY = 0;
+      targetCameraRot = 0;
+    }
+
+    cameraX += (targetCameraX - cameraX) * 0.05;
+    cameraY += (targetCameraY - cameraY) * 0.05;
+    cameraRot += (targetCameraRot - cameraRot) * 0.05;
+
+    for (let i = 0; i < stars.length; i++) {
+      const star = stars[i];
+      const twinkle = Math.sin(time * 0.001 * star.twinkleSpeed + star.twinkleOffset) * 0.15 + 0.85;
+
+      let brightness = star.baseBrightness;
+      let size = star.baseSize;
+
+      if (star.isCenter) {
+        if (phase === 0) {
+          brightness = 1;
+          size = 3;
+        } else if (phase >= 1 && phase <= 3) {
+          brightness = 1 + phaseProgress * 0.5;
+          size = 3 + phaseProgress * 2;
+        } else if (phase === 4) {
+          brightness = 1.5 + phaseProgress * 1;
+          size = 5 + phaseProgress * 5;
+        } else {
+          brightness = 2.5 + burstProgress * 2;
+          size = 10 + burstProgress * 20;
+        }
+      } else {
+        if (phase === 0) {
+          brightness = star.hidden ? 0.05 : star.baseBrightness;
+          size = star.baseSize * (star.hidden ? 0.5 : 1);
+        } else if (phase === 1) {
+          const revealProgress = phaseProgress;
+          if (star.hidden) {
+            brightness = 0.05 + star.baseBrightness * 0.5 * revealProgress;
+            size = star.baseSize * 0.5 + star.baseSize * 0.5 * revealProgress;
+          } else {
+            brightness = star.baseBrightness + star.baseBrightness * 0.3 * revealProgress;
+            size = star.baseSize + star.baseSize * 0.2 * revealProgress;
+          }
+        } else if (phase === 2) {
+          brightness = star.baseBrightness * 0.8 * (1 + phaseProgress * 0.5);
+          size = star.baseSize * (1 + phaseProgress * 0.3);
+        } else if (phase === 3) {
+          brightness = star.baseBrightness * (1 + phaseProgress * 1.5);
+          size = star.baseSize * (1 + phaseProgress * 0.5);
+        } else if (phase === 4) {
+          brightness = star.baseBrightness * (2 + phaseProgress * 2);
+          size = star.baseSize * (1.5 + phaseProgress * 0.5);
+        } else {
+          const burstFactor = 1 + burstProgress * 3;
+          brightness = star.baseBrightness * 4 * burstFactor;
+          size = star.baseSize * 2 * burstFactor;
+        }
+      }
+
+      star.brightness = brightness * twinkle;
+      star.size = size;
+
+      const parallaxX = (mouseX - centerX) * 0.02 * star.depth;
+      const parallaxY = (mouseY - centerY) * 0.02 * star.depth;
+
+      const dx = star.baseX - centerX;
+      const dy = star.baseY - centerY;
+      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+
+      if (phase === 5 && !star.isCenter) {
+        const moveAway = burstProgress * distFromCenter * 0.3;
+        const angle = Math.atan2(dy, dx);
+        star.x = centerX + Math.cos(angle + cameraRot) * (distFromCenter + moveAway) + cameraX * star.depth + parallaxX;
+        star.y = centerY + Math.sin(angle + cameraRot) * (distFromCenter + moveAway) + cameraY * star.depth + parallaxY;
+      } else if (phase >= 1 && phase <= 4) {
+        const convergeFactor = phase === 4 ? phaseProgress * 0.3 : (phase === 3 ? phaseProgress * 0.15 : 0);
+        const newDist = distFromCenter * (1 - convergeFactor);
+        const angle = Math.atan2(dy, dx);
+        star.x = centerX + Math.cos(angle + cameraRot) * newDist + cameraX * star.depth + parallaxX;
+        star.y = centerY + Math.sin(angle + cameraRot) * newDist + cameraY * star.depth + parallaxY;
+      } else {
+        star.x = star.baseX + cameraX * star.depth + parallaxX;
+        star.y = star.baseY + cameraY * star.depth + parallaxY;
+      }
+    }
+  }
+
+  function drawConnections(phase, phaseProgress) {
+    if (phase < 2) return;
+
+    let connectionAlpha = 0;
+    if (phase === 2) {
+      connectionAlpha = phaseProgress * 0.3;
+    } else if (phase === 3) {
+      connectionAlpha = 0.3 + phaseProgress * 0.3;
+    } else if (phase === 4) {
+      connectionAlpha = 0.6 + phaseProgress * 0.2;
+    } else if (phase === 5) {
+      connectionAlpha = 0.8 + burstProgress * 0.2;
+    }
+
+    const centerStar = stars[0];
+
+    for (let i = 0; i < stars.length; i++) {
+      const star = stars[i];
+      if (star.isCenter) continue;
+
+      if (phase >= 3) {
+        const alpha = connectionAlpha * star.brightness * 0.5;
+        if (alpha <= 0) continue;
+
+        const gradient = ctx.createLinearGradient(star.x, star.y, centerStar.x, centerStar.y);
+        gradient.addColorStop(0, star.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+        gradient.addColorStop(1, 'rgba(255, 255, 255, ' + (alpha * 0.8) + ')');
+
+        ctx.beginPath();
+        ctx.moveTo(star.x, star.y);
+        ctx.lineTo(centerStar.x, centerStar.y);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 0.5 + (phase >= 4 ? phaseProgress : 0);
+        ctx.stroke();
+      }
+
+      if (phase >= 2) {
+        for (let j = 0; j < star.targetConnections.length; j++) {
+          const targetIdx = star.targetConnections[j];
+          if (targetIdx <= i) continue;
+          const target = stars[targetIdx];
+
+          const alpha = connectionAlpha * 0.4 * Math.min(star.brightness, target.brightness);
+          if (alpha <= 0) continue;
+
+          const gradient = ctx.createLinearGradient(star.x, star.y, target.x, target.y);
+          gradient.addColorStop(0, star.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+          gradient.addColorStop(1, target.color + Math.floor(alpha * 255).toString(16).padStart(2, '0'));
+
+          ctx.beginPath();
+          ctx.moveTo(star.x, star.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 0.3;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function drawBurst(time) {
+    if (burstProgress <= 0) return;
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const maxRadius = Math.max(width, height) * 1.5;
+
+    const ringCount = 5;
+    for (let i = 0; i < ringCount; i++) {
+      const ringProgress = Math.max(0, Math.min(1, (burstProgress - i * 0.15) / 0.7));
+      if (ringProgress <= 0) continue;
+
+      const radius = ringProgress * maxRadius;
+      const alpha = (1 - ringProgress) * 0.5;
+
+      const colorIdx = i % colors.length;
+      const nextColorIdx = (i + 1) % colors.length;
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = colors[colorIdx] + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+      ctx.lineWidth = 3 - i * 0.4;
+      ctx.stroke();
+    }
+
+    if (burstProgress > 0.3) {
+      const glowProgress = (burstProgress - 0.3) / 0.7;
+      const glowRadius = glowProgress * Math.min(width, height) * 0.8;
+
+      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+      gradient.addColorStop(0, 'rgba(34, 211, 238, ' + (0.15 * (1 - glowProgress * 0.5)) + ')');
+      gradient.addColorStop(0.3, 'rgba(167, 139, 250, ' + (0.1 * (1 - glowProgress * 0.5)) + ')');
+      gradient.addColorStop(0.6, 'rgba(251, 191, 36, ' + (0.08 * (1 - glowProgress * 0.5)) + ')');
+      gradient.addColorStop(1, 'rgba(251, 113, 133, 0)');
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+  }
+
+  function drawStars(time) {
+    const phase = getPhase();
+    const phaseProgress = easeInOutCubic(getPhaseProgress());
+
+    drawConnections(phase, phaseProgress);
+
+    for (let i = 0; i < stars.length; i++) {
+      const star = stars[i];
+      if (star.brightness <= 0.01) continue;
+
+      const glowSize = star.size * 3;
+      const gradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, glowSize);
+
+      const alpha = Math.min(1, star.brightness);
+      const alphaStr = Math.floor(alpha * 255).toString(16).padStart(2, '0');
+      const lowAlphaStr = Math.floor(alpha * 50).toString(16).padStart(2, '0');
+
+      gradient.addColorStop(0, star.color + alphaStr);
+      gradient.addColorStop(0.3, star.color + lowAlphaStr);
+      gradient.addColorStop(1, star.color + '00');
+
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+      ctx.fillStyle = star.color;
+      ctx.globalAlpha = Math.min(1, star.brightness);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    drawBurst(time);
+  }
+
+  let lastTime = 0;
+  function animate(time) {
+    const delta = time - lastTime;
+    lastTime = time;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const bgGradient = ctx.createRadialGradient(
+      width / 2, height / 2, 0,
+      width / 2, height / 2, Math.max(width, height) * 0.7
+    );
+    bgGradient.addColorStop(0, '#0F1524');
+    bgGradient.addColorStop(1, '#0A0E17');
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, width, height);
+
+    updateStars(time);
+    drawStars(time);
+
+    requestAnimationFrame(animate);
+  }
+
+  function updateScrollProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress = Math.min(1, Math.max(0, scrollTop / docHeight));
+
+    const easterEggSection = document.querySelector('.easter-egg-section');
+    const easterEggContent = document.querySelector('.easter-egg-content');
+    const burstRings = document.querySelectorAll('.burst-ring');
+
+    if (easterEggSection && easterEggContent) {
+      const rect = easterEggSection.getBoundingClientRect();
+      const sectionProgress = Math.min(1, Math.max(0, 1 - rect.top / window.innerHeight));
+
+      if (sectionProgress > 0.3) {
+        easterEggContent.classList.add('active');
+        if (!easterEggActive) {
+          easterEggActive = true;
+          burstRings.forEach(ring => ring.classList.add('active'));
+        }
+      }
+
+      burstProgress = Math.min(1, Math.max(0, (sectionProgress - 0.2) / 0.6));
+    }
+  }
+
+  function handleMouseMove(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('scroll', updateScrollProgress);
+  window.addEventListener('mousemove', handleMouseMove);
+
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  resize();
+  updateScrollProgress();
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

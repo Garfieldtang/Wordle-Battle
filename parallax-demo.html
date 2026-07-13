@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视差 PARALLAX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --deep-space: #0A0E17;
+  --glow-cyan: #22D3EE;
+  --glow-violet: #A78BFA;
+  --glow-amber: #FBBF24;
+  --glow-rose: #FB7185;
+  --glow-mint: #6EE7B7;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-glow: rgba(255, 255, 255, 0.02);
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-tertiary: rgba(255, 255, 255, 0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--deep-space);
+  color: var(--text-primary);
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#starfield {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--glow-cyan), var(--glow-violet), var(--glow-amber));
+  z-index: 100;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+}
+
+.screens {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.screen {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(30px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 var(--glass-glow);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  user-select: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+  color: #0A0E17;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(34, 211, 238, 0.5);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  border-color: var(--glow-cyan);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+}
+
+.title-font { font-family: 'Orbitron', sans-serif; }
+.ui-font { font-family: 'Space Grotesk', sans-serif; }
+
+/* Screen 0 */
+.s0-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(48px, 12vw, 120px);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, var(--glow-cyan) 0%, var(--glow-violet) 50%, var(--glow-amber) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 80px rgba(167, 139, 250, 0.3);
+  margin-bottom: 8px;
+  animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  from { filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.3)); }
+  to { filter: drop-shadow(0 0 40px rgba(251, 191, 36, 0.4)); }
+}
+
+.s0-subtitle {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(14px, 2.5vw, 24px);
+  letter-spacing: 0.5em;
+  color: var(--text-tertiary);
+  margin-bottom: 40px;
+  padding-left: 0.5em;
+}
+
+.s0-slogan {
+  font-size: clamp(14px, 2vw, 18px);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.8;
+  margin-bottom: 56px;
+  max-width: 520px;
+}
+
+.s0-slogan span {
+  display: block;
+}
+
+/* Screen 1 */
+.s1-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.s1-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.s1-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.constellation-container {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  height: 420px;
+  border-radius: 20px;
+  background: radial-gradient(ellipse at center, rgba(34, 211, 238, 0.06) 0%, rgba(10, 14, 23, 0.8) 70%);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.constellation-container svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  z-index: 2;
+}
+
+.star-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.star-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  text-align: center;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.star:hover .star-dot {
+  transform: scale(2);
+  box-shadow: 0 0 20px currentColor;
+}
+
+.star:hover .star-label {
+  opacity: 1;
+}
+
+.star.selected .star-dot {
+  transform: scale(1.8);
+  animation: starPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+  0%, 100% { box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+  50% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor; }
+}
+
+.star.selected .star-label {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.star.color-violet .star-dot { background: var(--glow-violet); color: var(--glow-violet); }
+.star.color-amber .star-dot { background: var(--glow-amber); color: var(--glow-amber); }
+.star.color-rose .star-dot { background: var(--glow-rose); color: var(--glow-rose); }
+.star.color-mint .star-dot { background: var(--glow-mint); color: var(--glow-mint); }
+.star.color-cyan .star-dot { background: var(--glow-cyan); color: var(--glow-cyan); }
+
+@keyframes float1 { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-8px); } }
+@keyframes float2 { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-6px); } }
+@keyframes float3 { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-10px); } }
+@keyframes float4 { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-5px); } }
+
+.star.float-1 { animation: float1 4s ease-in-out infinite; }
+.star.float-2 { animation: float2 5s ease-in-out infinite; }
+.star.float-3 { animation: float3 3.5s ease-in-out infinite; }
+.star.float-4 { animation: float4 6s ease-in-out infinite; }
+
+.s1-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.custom-input-wrap {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.custom-input-wrap input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.custom-input-wrap input:focus {
+  border-color: var(--glow-cyan);
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+  min-height: 28px;
+}
+
+.selected-tag {
+  padding: 6px 14px;
+  background: rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--glow-violet);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selected-tag .remove {
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.selected-tag .remove:hover { opacity: 1; }
+
+/* Screen 2 */
+.s2-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.s2-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.round-indicator {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+}
+
+.round-indicator .current {
+  color: var(--glow-cyan);
+  font-weight: 600;
+}
+
+.chat-container {
+  width: 100%;
+  max-width: 680px;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.msg {
+  display: flex;
+  gap: 12px;
+  max-width: 80%;
+}
+
+.msg.ai { align-self: flex-start; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.msg.ai .msg-avatar {
+  background: linear-gradient(135deg, var(--glow-violet), var(--glow-cyan));
+}
+
+.msg.user .msg-avatar {
+  background: linear-gradient(135deg, var(--glow-amber), var(--glow-rose));
+}
+
+.msg-bubble {
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.msg.ai .msg-bubble {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-bottom-left-radius: 6px;
+}
+
+.msg.user .msg-bubble {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(167, 139, 250, 0.2));
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-bottom-right-radius: 6px;
+}
+
+.msg-transition {
+  color: var(--glow-violet);
+  font-size: 13px;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+.chat-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-option {
+  padding: 8px 16px;
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--glow-cyan);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-option:hover {
+  background: rgba(34, 211, 238, 0.2);
+  transform: translateY(-1px);
+}
+
+.chat-input-area {
+  padding: 16px 20px;
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.chat-input-area textarea {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  transition: border-color 0.3s ease;
+}
+
+.chat-input-area textarea:focus {
+  border-color: var(--glow-cyan);
+}
+
+.send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0A0E17;
+  font-size: 18px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.send-btn:hover { transform: translateY(-2px); }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.s2-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+/* Screen 3 */
+.s3-content {
+  text-align: center;
+}
+
+.loading-ring {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 32px;
+  position: relative;
+}
+
+.loading-ring::before,
+.loading-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.loading-ring::before {
+  border-top-color: var(--glow-cyan);
+  border-right-color: var(--glow-violet);
+  animation: spin 1.2s linear infinite;
+}
+
+.loading-ring::after {
+  border-bottom-color: var(--glow-amber);
+  border-left-color: var(--glow-rose);
+  animation: spin 1.8s linear infinite reverse;
+  inset: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  min-height: 24px;
+}
+
+.loading-subtext {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.profile-card.show {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.profile-gradient-bar {
+  height: 6px;
+  background: linear-gradient(90deg, var(--glow-cyan), var(--glow-violet), var(--glow-amber));
+}
+
+.profile-body {
+  padding: 32px;
+}
+
+.profile-type {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.profile-depth {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.profile-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.profile-tag.cyan { background: rgba(34, 211, 238, 0.15); color: var(--glow-cyan); border: 1px solid rgba(34, 211, 238, 0.3); }
+.profile-tag.violet { background: rgba(167, 139, 250, 0.15); color: var(--glow-violet); border: 1px solid rgba(167, 139, 250, 0.3); }
+.profile-tag.amber { background: rgba(251, 191, 36, 0.15); color: var(--glow-amber); border: 1px solid rgba(251, 191, 36, 0.3); }
+.profile-tag.rose { background: rgba(251, 113, 133, 0.15); color: var(--glow-rose); border: 1px solid rgba(251, 113, 133, 0.3); }
+.profile-tag.mint { background: rgba(110, 231, 183, 0.15); color: var(--glow-mint); border: 1px solid rgba(110, 231, 183, 0.3); }
+
+.profile-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.profile-meta-item {
+  text-align: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+}
+
+.profile-meta-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.profile-meta-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.s3-actions {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Screen 4 */
+.s4-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.s4-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--glow-cyan), var(--glow-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.s4-subtitle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.rec-container {
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.rec-container::-webkit-scrollbar { width: 4px; }
+.rec-container::-webkit-scrollbar-track { background: transparent; }
+.rec-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.rec-section {
+  margin-bottom: 28px;
+}
+
+.rec-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rec-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.rec-section-icon.cyan {
+  background: rgba(34, 211, 238, 0.15);
+  color: var(--glow-cyan);
+}
+
+.rec-section-icon.violet {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--glow-violet);
+}
+
+.rec-section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rec-section-title.cyan { color: var(--glow-cyan); }
+.rec-section-title.violet { color: var(--glow-violet); }
+
+.rec-card {
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+}
+
+.rec-card:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.rec-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.rec-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.rec-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.rec-card-tag {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-family: 'Space Grotesk', sans-serif;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-tertiary);
+}
+
+.rec-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--glow-cyan);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.rec-card-link:hover { color: var(--glow-violet); }
+
+.rec-card-link.violet { color: var(--glow-violet); }
+.rec-card-link.violet:hover { color: var(--glow-cyan); }
+
+.bridge-locked {
+  padding: 32px;
+  border-radius: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  text-align: center;
+}
+
+.bridge-lock-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.bridge-locked-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.bridge-locked-desc {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-bottom: 20px;
+}
+
+.progress-bar-wrap {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--glow-violet), var(--glow-amber));
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.bridge-card {
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08), rgba(34, 211, 238, 0.08));
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  margin-bottom: 12px;
+}
+
+.bridge-from-to {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bridge-from, .bridge-to {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bridge-from {
+  background: rgba(34, 211, 238, 0.15);
+  color: var(--glow-cyan);
+}
+
+.bridge-arrow {
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+
+.bridge-to {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--glow-violet);
+}
+
+.bridge-logic {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .screen { padding: 24px 16px; }
+  .constellation-container { height: 360px; }
+  .chat-container { height: 380px; }
+  .msg { max-width: 90%; }
+  .profile-body { padding: 24px 20px; }
+  .profile-meta { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rec-container { max-height: calc(100vh - 180px); }
+}
+</style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+
+<div class="app">
+  <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+
+  <div class="screens">
+    <!-- Screen 0: Welcome -->
+    <div class="screen active" id="screen-0">
+      <h1 class="s0-title">视差</h1>
+      <div class="s0-subtitle">P A R A L L A X</div>
+      <p class="s0-slogan">
+        <span>不靠蛮力破壁，只凭视角偏移。</span>
+        <span>看见被遮蔽的，连接本不相关的。</span>
+      </p>
+      <button class="btn btn-primary" onclick="goToScreen(1)">开始体验 →</button>
+    </div>
+
+    <!-- Screen 1: Constellation -->
+    <div class="screen" id="screen-1">
+      <div class="s1-header">
+        <h2 class="s1-title">点亮你感兴趣的那颗星</h2>
+        <p class="s1-desc">选择 1-3 个你感兴趣的领域，或自定义输入</p>
+      </div>
+
+      <div class="selected-tags" id="selectedTags"></div>
+
+      <div class="constellation-container" id="constellationContainer">
+        <svg id="constellationSvg"></svg>
+        <div id="starsContainer"></div>
+      </div>
+
+      <div class="custom-input-wrap">
+        <input type="text" id="customFieldInput" placeholder="自定义领域，回车添加..." maxlength="20">
+        <button class="btn btn-secondary" onclick="addCustomField()">添加</button>
+      </div>
+
+      <div class="s1-actions" style="margin-top: 16px;">
+        <button class="btn btn-secondary" onclick="refreshStars()">↻ 换一批</button>
+        <button class="btn btn-primary" id="nextBtn1" disabled onclick="goToScreen(2)">下一步 →</button>
+      </div>
+    </div>
+
+    <!-- Screen 2: Chat -->
+    <div class="screen" id="screen-2">
+      <div class="s2-header">
+        <h2 class="s2-title">聊聊你自己</h2>
+        <div class="round-indicator">
+          ROUND <span class="current" id="roundCurrent">1</span> / 7
+        </div>
+      </div>
+
+      <div class="glass-card chat-container">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <textarea id="chatInput" placeholder="输入你的回答..." rows="1" onkeydown="handleChatKeydown(event)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">→</button>
+        </div>
+      </div>
+
+      <div class="s2-actions">
+        <button class="btn btn-ghost" onclick="skipChat()" id="skipBtn" style="display:none;">结束对话，生成画像</button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Profile -->
+    <div class="screen" id="screen-3">
+      <div class="s3-content" id="loadingState">
+        <div class="loading-ring"></div>
+        <div class="loading-text" id="loadingText">正在分析你的回答...</div>
+        <div class="loading-subtext" id="loadingSubtext">提取认知特征</div>
+      </div>
+
+      <div class="glass-card profile-card" id="profileCard">
+        <div class="profile-gradient-bar"></div>
+        <div class="profile-body">
+          <div class="profile-type" id="profileType">逻辑哲理型</div>
+          <div class="profile-depth" id="profileDepth">深度探索者 · 中级</div>
+          <div class="profile-tags" id="profileTags"></div>
+          <div class="profile-meta">
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">领域</div>
+              <div class="profile-meta-value" id="metaField">物理学</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">思维类型</div>
+              <div class="profile-meta-value" id="metaThink">逻辑推演</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">深度</div>
+              <div class="profile-meta-value" id="metaDepth">进阶</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">子类型</div>
+              <div class="profile-meta-value" id="metaSubtype">理论建构者</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="s3-actions" id="s3Actions" style="display:none;">
+        <button class="btn btn-primary" onclick="goToScreen(4)">查看破茧推荐 →</button>
+      </div>
+    </div>
+
+    <!-- Screen 4: Recommendations -->
+    <div class="screen" id="screen-4">
+      <div class="s4-header">
+        <h2 class="s4-title">破茧推荐</h2>
+        <p class="s4-subtitle">基于你的认知画像，定制你的破茧路径</p>
+      </div>
+
+      <div class="rec-container" id="recContainer">
+        <div class="rec-section">
+          <div class="rec-section-header">
+            <div class="rec-section-icon cyan">↓</div>
+            <div class="rec-section-title cyan">垂直深潜</div>
+          </div>
+          <div id="verticalRecs"></div>
+        </div>
+
+        <div class="rec-section">
+          <div class="rec-section-header">
+            <div class="rec-section-icon violet">⇄</div>
+            <div class="rec-section-title violet">水平桥接</div>
+          </div>
+          <div id="bridgeRecs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== State ==========
+const state = {
+  currentScreen: 0,
+  selectedFields: [],
+  stars: [],
+  chatHistory: [],
+  currentRound: 0,
+  maxRounds: 7,
+  isTyping: false,
+  userInfo: {
+    education: '',
+    school: '',
+    platform: '',
+    major: '',
+    level: 'beginner',
+    keywords: []
+  },
+  userType: null,
+  userDepth: null,
+  profileTags: []
+};
+
+// ========== Starfield Canvas ==========
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let starsBg = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function initStarsBg() {
+  starsBg = [];
+  const count = Math.floor((canvas.width * canvas.height) / 8000);
+  for (let i = 0; i < count; i++) {
+    starsBg.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 1.5 + 0.3,
+      opacity: Math.random() * 0.6 + 0.2,
+      twinkleSpeed: Math.random() * 0.02 + 0.005,
+      twinklePhase: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function animateStarsBg() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const time = Date.now() / 1000;
+  starsBg.forEach(star => {
+    const twinkle = Math.sin(time * star.twinkleSpeed * 10 + star.twinklePhase) * 0.3 + 0.7;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * twinkle})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animateStarsBg);
+}
+
+resizeCanvas();
+initStarsBg();
+animateStarsBg();
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  initStarsBg();
+});
+
+// ========== Screen Navigation ==========
+function goToScreen(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${n}`).classList.add('active');
+  state.currentScreen = n;
+  
+  const progress = (n / 4) * 100;
+  document.getElementById('progressBar').style.width = progress + '%';
+  
+  if (n === 1 && state.stars.length === 0) {
+    refreshStars();
+  }
+  if (n === 2 && state.chatHistory.length === 0) {
+    startChat();
+  }
+  if (n === 3) {
+    generateProfile();
+  }
+  if (n === 4) {
+    renderRecommendations();
+  }
+}
+
+// ========== Screen 1: Constellation ==========
+const allFields = [
+  '物理学', '人工智能', '哲学', '前端开发', '心理学',
+  '数学', '生物学', '宇宙学', '经济学', '设计学',
+  '神经科学', '语言学', '社会学', '历史学', '艺术史',
+  '建筑学', '音乐理论', '政治学', '人类学', '地质学',
+  '计算机科学', '统计学', '医学', '药学', '法学',
+  '教育学', '传播学', '环境科学', '材料科学', '机械工程',
+  '电子工程', '量子计算', '区块链', '游戏设计', '电影研究',
+  '文学批评', '比较文学', '认知科学', '复杂系统', '网络科学',
+  '混沌理论', '信息论', '控制论', '系统论', '现象学'
+];
+
+const colorClasses = ['color-violet', 'color-amber', 'color-rose', 'color-mint', 'color-cyan'];
+const floatClasses = ['float-1', 'float-2', 'float-3', 'float-4'];
+
+function pickRandomFields(count) {
+  const shuffled = [...allFields].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+function refreshStars() {
+  const container = document.getElementById('constellationContainer');
+  const starsContainer = document.getElementById('starsContainer');
+  const svg = document.getElementById('constellationSvg');
+  
+  starsContainer.innerHTML = '';
+  svg.innerHTML = '';
+  state.stars = [];
+  
+  const fields = pickRandomFields(24);
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  const centerX = w / 2;
+  const centerY = h / 2;
+  const maxRadius = Math.min(w, h) * 0.42;
+  
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  
+  for (let i = 0; i < 24; i++) {
+    const angle = i * goldenAngle;
+    const radius = maxRadius * Math.sqrt(i / 24) * 0.9 + maxRadius * 0.1;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    
+    const isColored = Math.random() < 0.3;
+    const colorClass = isColored ? colorClasses[Math.floor(Math.random() * colorClasses.length)] : '';
+    const floatClass = floatClasses[Math.floor(Math.random() * floatClasses.length)];
+    
+    const star = {
+      id: i,
+      name: fields[i],
+      x: x,
+      y: y,
+      colorClass: colorClass,
+      selected: false
+    };
+    state.stars.push(star);
+    
+    const starEl = document.createElement('div');
+    starEl.className = `star ${colorClass} ${floatClass}`;
+    starEl.style.left = x + 'px';
+    starEl.style.top = y + 'px';
+    starEl.style.animationDelay = (Math.random() * 2) + 's';
+    starEl.innerHTML = `
+      <div class="star-dot"></div>
+      <div class="star-label">${fields[i]}</div>
+    `;
+    starEl.addEventListener('click', () => toggleStar(i));
+    starEl.addEventListener('mouseenter', () => highlightNearbyLines(i, true));
+    starEl.addEventListener('mouseleave', () => highlightNearbyLines(i, false));
+    starsContainer.appendChild(starEl);
+  }
+  
+  drawConstellationLines();
+}
+
+function drawConstellationLines() {
+  const svg = document.getElementById('constellationSvg');
+  svg.innerHTML = '';
+  
+  const maxDist = 120;
+  
+  for (let i = 0; i < state.stars.length; i++) {
+    for (let j = i + 1; j < state.stars.length; j++) {
+      const dx = state.stars[i].x - state.stars[j].x;
+      const dy = state.stars[i].y - state.stars[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < maxDist) {
+        const opacity = (1 - dist / maxDist) * 0.2;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', state.stars[i].x);
+        line.setAttribute('y1', state.stars[i].y);
+        line.setAttribute('x2', state.stars[j].x);
+        line.setAttribute('y2', state.stars[j].y);
+        line.setAttribute('stroke', `rgba(34, 211, 238, ${opacity})`);
+        line.setAttribute('stroke-width', '1');
+        line.setAttribute('data-pair', `${i}-${j}`);
+        line.setAttribute('data-base-opacity', opacity);
+        svg.appendChild(line);
+      }
+    }
+  }
+}
+
+function highlightNearbyLines(starIdx, highlight) {
+  const lines = document.querySelectorAll('#constellationSvg line');
+  const maxDist = 120;
+  
+  lines.forEach(line => {
+    const pair = line.getAttribute('data-pair').split('-').map(Number);
+    const baseOpacity = parseFloat(line.getAttribute('data-base-opacity'));
+    
+    if (pair.includes(starIdx)) {
+      if (highlight) {
+        line.setAttribute('stroke', `rgba(34, 211, 238, 0.6)`);
+        line.setAttribute('stroke-width', '1.5');
+      } else {
+        line.setAttribute('stroke', `rgba(34, 211, 238, ${baseOpacity})`);
+        line.setAttribute('stroke-width', '1');
+      }
+    }
+  });
+}
+
+function toggleStar(idx) {
+  const star = state.stars[idx];
+  const starsContainer = document.getElementById('starsContainer');
+  const starEl = starsContainer.children[idx];
+  
+  if (star.selected) {
+    star.selected = false;
+    starEl.classList.remove('selected');
+    state.selectedFields = state.selectedFields.filter(f => f !== star.name);
+  } else {
+    if (state.selectedFields.length >= 3) {
+      return;
+    }
+    star.selected = true;
+    starEl.classList.add('selected');
+    state.selectedFields.push(star.name);
+  }
+  
+  updateSelectedTags();
+  updateNextButton();
+}
+
+function updateSelectedTags() {
+  const container = document.getElementById('selectedTags');
+  container.innerHTML = '';
+  state.selectedFields.forEach((field, idx) => {
+    const tag = document.createElement('div');
+    tag.className = 'selected-tag';
+    tag.innerHTML = `${field} <span class="remove" onclick="removeField(${idx})">×</span>`;
+    container.appendChild(tag);
+  });
+}
+
+function removeField(idx) {
+  const field = state.selectedFields[idx];
+  state.selectedFields.splice(idx, 1);
+  
+  const starIdx = state.stars.findIndex(s => s.name === field);
+  if (starIdx !== -1) {
+    state.stars[starIdx].selected = false;
+    const starsContainer = document.getElementById('starsContainer');
+    if (starsContainer.children[starIdx]) {
+      starsContainer.children[starIdx].classList.remove('selected');
+    }
+  }
+  
+  updateSelectedTags();
+  updateNextButton();
+}
+
+function addCustomField() {
+  const input = document.getElementById('customFieldInput');
+  const value = input.value.trim();
+  if (!value) return;
+  if (state.selectedFields.length >= 3) {
+    input.value = '';
+    return;
+  }
+  if (state.selectedFields.includes(value)) {
+    input.value = '';
+    return;
+  }
+  
+  state.selectedFields.push(value);
+  updateSelectedTags();
+  updateNextButton();
+  input.value = '';
+}
+
+document.getElementById('customFieldInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addCustomField();
+  }
+});
+
+function updateNextButton() {
+  const btn = document.getElementById('nextBtn1');
+  btn.disabled = state.selectedFields.length === 0;
+}
+
+// ========== Screen 2: Chat ==========
+const aiIntro = [
+  { transition: null, text: '你好！我是视差的画像助手。我们来简单聊几句，帮你找到最适合的破茧路径。' },
+];
+
+function startChat() {
+  state.currentRound = 0;
+  state.chatHistory = [];
+  document.getElementById('roundCurrent').textContent = '1';
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('skipBtn').style.display = 'none';
+  
+  setTimeout(() => {
+    addAIMessage('你好！我是视差的画像助手。我们来简单聊几句，帮你找到最适合的破茧路径。先做个自我介绍吧——你的年龄阶段、所在学校或平台、专业或职业方向是什么呢？');
+  }, 500);
+}
+
+function addAIMessage(text, options = []) {
+  state.isTyping = true;
+  document.getElementById('sendBtn').disabled = true;
+  
+  const container = document.getElementById('chatMessages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'msg ai';
+  
+  let transitionHtml = '';
+  if (options.transition) {
+    transitionHtml = `<div class="msg-transition">${options.transition}</div>`;
+  }
+  
+  msgDiv.innerHTML = `
+    <div class="msg-avatar">✦</div>
+    <div class="msg-bubble">
+      ${transitionHtml}
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div>
+  `;
+  container.appendChild(msgDiv);
+  scrollChatToBottom();
+  
+  const typeSpeed = Math.min(30, 1500 / text.length);
+  let charIdx = 0;
+  
+  setTimeout(() => {
+    const bubble = msgDiv.querySelector('.msg-bubble');
+    const dots = bubble.querySelector('.typing-dots');
+    dots.remove();
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'msg-text';
+    bubble.appendChild(textDiv);
+    
+    const typeInterval = setInterval(() => {
+      if (charIdx < text.length) {
+        textDiv.textContent = text.slice(0, charIdx + 1);
+        charIdx++;
+        scrollChatToBottom();
+      } else {
+        clearInterval(typeInterval);
+        state.isTyping = false;
+        document.getElementById('sendBtn').disabled = false;
+        
+        if (options.options && options.options.length > 0) {
+          const optionsDiv = document.createElement('div');
+          optionsDiv.className = 'chat-options';
+          options.options.forEach(opt => {
+            const optBtn = document.createElement('div');
+            optBtn.className = 'chat-option';
+            optBtn.textContent = opt;
+            optBtn.onclick = () => selectOption(opt);
+            optionsDiv.appendChild(optBtn);
+          });
+          bubble.appendChild(optionsDiv);
+          scrollChatToBottom();
+        }
+      }
+    }, typeSpeed);
+  }, 800);
+  
+  state.chatHistory.push({ role: 'ai', text: text });
+}
+
+function addUserMessage(text) {
+  const container = document.getElementById('chatMessages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'msg user';
+  msgDiv.innerHTML = `
+    <div class="msg-avatar">◈</div>
+    <div class="msg-bubble">${escapeHtml(text)}</div>
+  `;
+  container.appendChild(msgDiv);
+  scrollChatToBottom();
+  state.chatHistory.push({ role: 'user', text: text });
+}
+
+function scrollChatToBottom() {
+  const container = document.getElementById('chatMessages');
+  container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendUserMessage();
+  }
+}
+
+function sendUserMessage() {
+  if (state.isTyping) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  input.value = '';
+  addUserMessage(text);
+  extractUserInfo(text);
+  state.currentRound++;
+  document.getElementById('roundCurrent').textContent = Math.min(state.currentRound + 1, state.maxRounds);
+  
+  if (state.currentRound >= 3) {
+    document.getElementById('skipBtn').style.display = 'inline-flex';
+  }
+  
+  if (state.currentRound >= state.maxRounds) {
+    setTimeout(() => goToScreen(3), 1000);
+    return;
+  }
+  
+  setTimeout(() => {
+    generateNextQuestion();
+  }, 600);
+}
+
+function selectOption(option) {
+  if (state.isTyping) return;
+  document.getElementById('chatInput').value = option;
+  sendUserMessage();
+}
+
+function skipChat() {
+  goToScreen(3);
+}
+
+function extractUserInfo(text) {
+  const lowerText = text.toLowerCase();
+  
+  const eduPatterns = [
+    { pattern: /高中|高二|高三|高一|中学生/, level: 'high_school' },
+    { pattern: /大一|大二|大三|大四|本科|大学生|大学/, level: 'undergraduate' },
+    { pattern: /硕士|研究生|研一|研二|研三|master/, level: 'master' },
+    { pattern: /博士|phd|博一|博二|博士生/, level: 'phd' },
+    { pattern: /工作|职场|工程师|设计师|产品经理|程序员/, level: 'professional' }
+  ];
+  
+  for (const p of eduPatterns) {
+    if (p.pattern.test(text)) {
+      state.userInfo.education = p.level;
+      break;
+    }
+  }
+  
+  const schoolMatch = text.match(/(清华大学|北京大学|复旦|交大|浙大|南大|中科大|中科院|[^\s，。、]{2,10}大学)/);
+  if (schoolMatch) {
+    state.userInfo.school = schoolMatch[1];
+  }
+  
+  const platformMatch = text.match(/(B站|知乎|豆瓣|小红书|微博|GitHub|youtube|推特|X|微信)/i);
+  if (platformMatch) {
+    state.userInfo.platform = platformMatch[1];
+  }
+  
+  const levelKeywords = {
+    expert: ['专家', '资深', '精通', '多年', '十年', '高级', '教授', '研究员', '博士'],
+    learner: ['学习中', '进阶', '中级', '有一定基础', '了解', '熟悉', '工作', '从业'],
+    beginner: ['入门', '初学者', '新手', '刚学', '零基础', '小白', '大一', '大二', '高中']
+  };
+  
+  let levelScore = { expert: 0, learner: 0, beginner: 0 };
+  for (const [level, keywords] of Object.entries(levelKeywords)) {
+    keywords.forEach(kw => {
+      if (text.includes(kw)) levelScore[level]++;
+    });
+  }
+  
+  const maxLevel = Object.entries(levelScore).sort((a, b) => b[1] - a[1])[0];
+  if (maxLevel[1] > 0) {
+    state.userInfo.level = maxLevel[0];
+  }
+  
+  const fieldKeywords = {
+    '物理学': ['物理', '力学', '量子', '相对论', '热力学', '电磁学', '光学', '凝聚态'],
+    '人工智能': ['AI', '人工智能', '机器学习', '深度学习', '神经网络', 'NLP', 'CV', '大模型', 'LLM'],
+    '哲学': ['哲学', '形而上学', '认识论', '伦理学', '存在主义', '现象学', '分析哲学'],
+    '前端开发': ['前端', 'JavaScript', 'React', 'Vue', 'CSS', 'HTML', '网页', 'Web'],
+    '心理学': ['心理', '认知', '行为', '精神分析', '人本主义', '社会心理'],
+    '数学': ['数学', '代数', '几何', '拓扑', '分析', '数论', '概率', '统计'],
+    '计算机科学': ['编程', '算法', '数据结构', '操作系统', '计算机', '代码', '程序']
+  };
+  
+  for (const [field, keywords] of Object.entries(fieldKeywords)) {
+    keywords.forEach(kw => {
+      if (lowerText.includes(kw.toLowerCase())) {
+        if (!state.userInfo.keywords.includes(field)) {
+          state.userInfo.keywords.push(field);
+        }
+      }
+    });
+  }
+}
+
+function buildRound1Transition() {
+  const parts = [];
+  if (state.userInfo.education === 'undergraduate') {
+    parts.push('你提到是大学生');
+  } else if (state.userInfo.education === 'high_school') {
+    parts.push('你提到是高中生');
+  } else if (state.userInfo.education === 'master') {
+    parts.push('你提到是研究生');
+  } else if (state.userInfo.education === 'phd') {
+    parts.push('你提到是博士生');
+  } else if (state.userInfo.education === 'professional') {
+    parts.push('你提到已经工作');
+  }
+  
+  if (state.userInfo.major) {
+    parts.push(`专业是${state.userInfo.major}`);
+  }
+  
+  if (parts.length > 0) {
+    return parts.join('，') + '——';
+  }
+  return '好的，让我们深入一点——';
+}
+
+function buildRound2Transition() {
+  const lastUserMsg = state.chatHistory.filter(m => m.role === 'user').pop();
+  if (lastUserMsg && lastUserMsg.text.length > 20) {
+    const snippet = lastUserMsg.text.slice(0, 15) + '...';
+    return `你说到"${snippet}"，这很有意思——`;
+  }
+  return '有意思，继续聊聊——';
+}
+
+function buildDeepTransition() {
+  const transitions = [
+    '让我们再深挖一层——',
+    '这个角度很好，我想再了解一下——',
+    '顺着这个思路——',
+    '基于你说的，我好奇——',
+    '从你的回答中我感受到——'
+  ];
+  return transitions[Math.floor(Math.random() * transitions.length)];
+}
+
+function generateNextQuestion() {
+  const round = state.currentRound;
+  const primaryField = state.selectedFields[0] || state.userInfo.keywords[0] || '你感兴趣的领域';
+  
+  if (round === 1) {
+    const transition = buildRound1Transition();
+    const question = generateContextualQuestion(primaryField, 'depth');
+    addAIMessage(question, { transition: transition, options: getOptionsForField(primaryField) });
+  } else if (round === 2) {
+    const transition = buildRound2Transition();
+    const question = generateContextualQuestion(primaryField, 'specific');
+    addAIMessage(question, { transition: transition });
+  } else {
+    const transition = buildDeepTransition();
+    const question = generateFollowUp(primaryField, round);
+    addAIMessage(question, { transition: transition, options: round % 2 === 0 ? getOptionsForField(primaryField) : [] });
+  }
+}
+
+function generateContextualQuestion(field, type) {
+  const questions = {
+    '物理学': {
+      depth: '你接触物理多久了？最吸引你的是哪个方向——是理论物理、凝聚态、天体物理，还是量子力学？',
+      specific: '说到物理，你觉得最震撼你的一个理论或现象是什么？为什么？'
+    },
+    '人工智能': {
+      depth: '你在 AI 领域主要关注什么方向？比如大模型、计算机视觉、NLP，还是强化学习？',
+      specific: '你觉得当前 AI 最大的局限是什么？未来 5 年最可能突破的方向在哪里？'
+    },
+    '哲学': {
+      depth: '你更喜欢哪个哲学传统？欧陆哲学、分析哲学，还是东方哲学？',
+      specific: '有没有哪个哲学家或哲学问题让你反复思考，甚至改变了你的认知方式？'
+    },
+    '前端开发': {
+      depth: '你在前端最擅长的是哪个层面？UI 交互、性能优化、工程化，还是框架源码？',
+      specific: '最近前端领域有什么趋势让你兴奋或担忧？比如 AI 辅助编程、WebAssembly 之类的。'
+    },
+    '心理学': {
+      depth: '你最感兴趣的心理学分支是什么？认知心理学、社会心理学、精神分析，还是积极心理学？',
+      specific: '你觉得心理学对普通人最大的价值是什么？你自己有过"啊原来如此"的顿悟时刻吗？'
+    },
+    '数学': {
+      depth: '数学里你最着迷的是哪个分支？代数、分析、几何、拓扑，还是概率论？',
+      specific: '有没有一个数学定理或证明让你觉得特别美，甚至感到震撼？'
+    },
+    '计算机科学': {
+      depth: '你最感兴趣的计算机科学方向是什么？算法、系统、编程语言，还是分布式？',
+      specific: '有没有哪个计算机科学的概念让你觉得打开了新世界的大门？'
+    }
+  };
+  
+  if (questions[field] && questions[field][type]) {
+    return questions[field][type];
+  }
+  
+  if (type === 'depth') {
+    return `你在${field}领域探索多久了？最吸引你的是哪个具体方向？`;
+  } else {
+    return `在${field}中，有没有什么概念或想法让你觉得特别有启发，甚至改变了你的思考方式？`;
+  }
+}
+
+function getOptionsForField(field) {
+  const options = {
+    '物理学': ['理论物理', '量子力学', '天体物理', '凝聚态物理'],
+    '人工智能': ['大模型/LLM', '计算机视觉', '自然语言处理', '强化学习'],
+    '哲学': ['欧陆哲学', '分析哲学', '东方哲学', '伦理学'],
+    '前端开发': ['React/Vue 生态', '性能优化', '工程化/构建', '动效交互'],
+    '心理学': ['认知心理学', '社会心理学', '精神分析', '积极心理学'],
+    '数学': ['纯数学', '应用数学', '概率统计', '计算数学'],
+    '计算机科学': ['算法与数据结构', '系统设计', '编程语言', '分布式系统']
+  };
+  return options[field] || [];
+}
+
+function generateFollowUp(field, round) {
+  const followUps = [
+    `除了${field}，你平时还会涉猎哪些看似不相关的领域？`,
+    `你有没有过这样的体验：从一个完全不相关的领域获得启发，解决了${field}里的问题？`,
+    `如果让你用一句话向一个完全不懂的人介绍${field}的魅力，你会怎么说？`,
+    `你觉得${field}领域当前最被低估或最被高估的是什么？`,
+    `想象一下 10 年后，${field}会变成什么样？你最期待的突破是什么？`
+  ];
+  return followUps[(round - 3) % followUps.length];
+}
+
+// ========== Screen 3: Profile ==========
+const userTypes = [
+  { type: '逻辑哲理型', think: '逻辑推演', subtype: '理论建构者', tags: ['violet', 'cyan'] },
+  { type: '审美创造型', think: '直觉洞察', subtype: '意义赋予者', tags: ['rose', 'amber'] },
+  { type: '实践应用型', think: '实证检验', subtype: '问题解决者', tags: ['mint', 'cyan'] },
+  { type: '社交叙事型', think: '共情理解', subtype: '故事编织者', tags: ['amber', 'rose'] },
+  { type: '探索发现型', think: '好奇驱动', subtype: '边界开拓者', tags: ['cyan', 'mint'] },
+  { type: '系统构建型', think: '整体综合', subtype: '架构设计者', tags: ['violet', 'amber'] }
+];
+
+function analyzeUserType() {
+  const allUserText = state.chatHistory.filter(m => m.role === 'user').map(m => m.text).join(' ');
+  const scores = {
+    '逻辑哲理型': 0,
+    '审美创造型': 0,
+    '实践应用型': 0,
+    '社交叙事型': 0,
+    '探索发现型': 0,
+    '系统构建型': 0
+  };
+  
+  const keywords = {
+    '逻辑哲理型': ['逻辑', '推理', '理论', '本质', '为什么', '原理', '哲学', '思辨', '概念', '框架', '底层', '方法论', '认知'],
+    '审美创造型': ['美', '艺术', '创造', '设计', '感觉', '直觉', '灵感', '想象', '表达', '作品', '创意', '审美', '意境'],
+    '实践应用型': ['实践', '应用', '解决', '效率', '方法', '工具', '落地', '实操', '效果', '优化', '迭代', '产出', '工程'],
+    '社交叙事型': ['人', '故事', '感受', '沟通', '关系', '共情', '体验', '分享', '社区', '文化', '叙事', '情感', '连接'],
+    '探索发现型': ['好奇', '探索', '发现', '新奇', '未知', '边界', '前沿', '突破', '冒险', '研究', '真理', '为什么', '怎么'],
+    '系统构建型': ['系统', '整体', '结构', '架构', '联系', '网络', '复杂', '模型', '机制', '生态', '循环', '反馈', '自组织']
+  };
+  
+  for (const [type, words] of Object.entries(keywords)) {
+    words.forEach(kw => {
+      if (allUserText.includes(kw)) scores[type] += 2;
+    });
+  }
+  
+  const fieldTypeMap = {
+    '物理学': '逻辑哲理型',
+    '数学': '逻辑哲理型',
+    '哲学': '逻辑哲理型',
+    '人工智能': '系统构建型',
+    '计算机科学': '实践应用型',
+    '前端开发': '实践应用型',
+    '心理学': '社交叙事型',
+    '设计学': '审美创造型',
+    '艺术史': '审美创造型',
+    '文学批评': '审美创造型',
+    '生物学': '探索发现型',
+    '宇宙学': '探索发现型',
+    '复杂系统': '系统构建型',
+    '网络科学': '系统构建型',
+    '社会学': '社交叙事型',
+    '人类学': '探索发现型',
+    '经济学': '逻辑哲理型'
+  };
+  
+  state.selectedFields.forEach(field => {
+    if (fieldTypeMap[field]) {
+      scores[fieldTypeMap[field]] += 3;
+    }
+  });
+  
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const maxScore = sorted[0][1];
+  
+  if (maxScore === 0) {
+    return userTypes[Math.floor(Math.random() * userTypes.length)];
+  }
+  
+  const topTypes = sorted.filter(([_, s]) => s === maxScore);
+  const selectedTypeName = topTypes[Math.floor(Math.random() * topTypes.length)][0];
+  return userTypes.find(t => t.type === selectedTypeName);
+}
+
+function analyzeDepth() {
+  const roundCount = state.currentRound;
+  const level = state.userInfo.level;
+  const edu = state.userInfo.education;
+  
+  let score = 0;
+  if (level === 'expert') score += 3;
+  else if (level === 'learner') score += 2;
+  else score += 1;
+  
+  if (edu === 'phd') score += 3;
+  else if (edu === 'master') score += 2;
+  else if (edu === 'undergraduate') score += 1;
+  else if (edu === 'professional') score += 2;
+  
+  score += Math.min(roundCount / 2, 2);
+  
+  if (score >= 6) return { depth: '深度探索者', level: '高级', desc: '在多个领域有深入积累' };
+  if (score >= 4) return { depth: '进阶探索者', level: '中级', desc: '有一定基础，正在快速成长' };
+  return { depth: '好奇探索者', level: '入门', desc: '兴趣广泛，正在建立认知地图' };
+}
+
+function generateProfile() {
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('profileCard').classList.remove('show');
+  document.getElementById('s3Actions').style.display = 'none';
+  
+  const loadingSteps = [
+    { text: '正在分析你的回答...', sub: '提取认知特征' },
+    { text: '构建思维画像...', sub: '识别认知模式' },
+    { text: '匹配用户类型...', sub: '计算类型权重' },
+    { text: '生成破茧路径...', sub: '准备推荐内容' }
+  ];
+  
+  let step = 0;
+  const loadingText = document.getElementById('loadingText');
+  const loadingSubtext = document.getElementById('loadingSubtext');
+  
+  const stepInterval = setInterval(() => {
+    step++;
+    if (step < loadingSteps.length) {
+      loadingText.textContent = loadingSteps[step].text;
+      loadingSubtext.textContent = loadingSteps[step].sub;
+    }
+  }, 700);
+  
+  setTimeout(() => {
+    clearInterval(stepInterval);
+    
+    const userType = analyzeUserType();
+    const userDepth = analyzeDepth();
+    
+    state.userType = userType;
+    state.userDepth = userDepth;
+    
+    const allTags = [
+      ...state.selectedFields.slice(0, 2),
+      userType.think,
+      userDepth.level,
+      state.userInfo.keywords.slice(0, 2),
+      userType.subtype
+    ].flat().filter(Boolean).slice(0, 6);
+    
+    state.profileTags = allTags;
+    
+    document.getElementById('profileType').textContent = userType.type;
+    document.getElementById('profileDepth').textContent = `${userDepth.depth} · ${userDepth.level}`;
+    document.getElementById('metaField').textContent = state.selectedFields[0] || '多领域探索';
+    document.getElementById('metaThink').textContent = userType.think;
+    document.getElementById('metaDepth').textContent = userDepth.level;
+    document.getElementById('metaSubtype').textContent = userType.subtype;
+    
+    const tagsContainer = document.getElementById('profileTags');
+    tagsContainer.innerHTML = '';
+    const tagColors = ['cyan', 'violet', 'amber', 'rose', 'mint'];
+    allTags.forEach((tag, i) => {
+      const tagEl = document.createElement('div');
+      tagEl.className = `profile-tag ${tagColors[i % tagColors.length]}`;
+      tagEl.textContent = tag;
+      tagsContainer.appendChild(tagEl);
+    });
+    
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('profileCard').classList.add('show');
+    
+    setTimeout(() => {
+      document.getElementById('s3Actions').style.display = 'flex';
+    }, 600);
+  }, 2800);
+}
+
+// ========== Screen 4: Recommendations ==========
+const recLibrary = {
+  '物理学': {
+    vertical: [
+      { title: '《费曼物理学讲义》', desc: '费曼用最直观的方式讲透物理的本质，三卷本，值得反复读。', tags: ['经典', '入门→进阶'], link: 'https://book.douban.com/subject/1161906/', linkText: '豆瓣查看' },
+      { title: 'B站：妈咪说MommyTalk', desc: '从量子力学到相对论，用数学和物理的视角讲透每个概念。', tags: ['视频', '系统课程'], link: 'https://space.bilibili.com/22312615', linkText: '去B站' },
+      { title: '《上帝掷骰子吗？》', desc: '量子物理史话，中国最好的科普书之一，读起来像小说。', tags: ['科普', '量子物理'], link: 'https://book.douban.com/subject/3268523/', linkText: '豆瓣查看' }
+    ],
+    bridges: [
+      { from: '物理学', to: '哲学', logic: '从量子力学的测量问题，到现象学、分析哲学——物理的边界就是哲学的起点。', rec: { title: '《物理学之道》', desc: '卡普拉将近代物理学与东方神秘主义并置，改变你对实在的认知。', tags: ['跨界经典', '物理+哲学'], link: 'https://book.douban.com/subject/3132811/', linkText: '豆瓣查看' } },
+      { from: '物理学', to: '复杂系统', logic: '从简单规律到涌现现象——物理的方法正在重塑生命科学、社会科学。', rec: { title: '《复杂》', desc: '米歇尔·沃尔德罗普，圣塔菲研究所的故事，带你进入复杂性科学的世界。', tags: ['复杂系统', '跨界'], link: 'https://book.douban.com/subject/30422463/', linkText: '豆瓣查看' } }
+    ]
+  },
+  '人工智能': {
+    vertical: [
+      { title: '《深度学习》', desc: 'Ian Goodfellow 等著，AI 领域的"圣经"，系统全面。', tags: ['经典教材', '进阶'], link: 'https://book.douban.com/subject/27056948/', linkText: '豆瓣查看' },
+      { title: 'B站：李沐 动手学深度学习', desc: '跟着李沐老师从零实现深度学习模型，代码+理论双管齐下。', tags: ['视频', '实战'], link: 'https://space.bilibili.com/1567748478', linkText: '去B站' },
+      { title: 'Andrej Karpathy Blog', desc: '前特斯拉AI总监，用最朴素的语言讲透最前沿的技术。', tags: ['博客', '前沿视角'], link: 'https://karpathy.ai/', linkText: '访问博客' }
+    ],
+    bridges: [
+      { from: '人工智能', to: '哲学', logic: '当AI开始思考，意识、智能、主体性这些古老的哲学问题突然有了实验基础。', rec: { title: '《生命3.0》', desc: '迈克斯·泰格马克，AI时代的人类命运，技术与哲学的深度对话。', tags: ['AI+哲学', '未来思考'], link: 'https://book.douban.com/subject/30147053/', linkText: '豆瓣查看' } },
+      { from: '人工智能', to: '神经科学', logic: '深度学习从大脑获得灵感，现在又反过来帮助我们理解大脑。', rec: { title: '《连接组》', desc: '承现峻，连接组学——比基因组更复杂的是你的大脑神经连接。', tags: ['神经科学', 'AI灵感'], link: 'https://book.douban.com/subject/25742505/', linkText: '豆瓣查看' } }
+    ]
+  },
+  '哲学': {
+    vertical: [
+      { title: '《大问题：简明哲学导论》', desc: '最好的哲学入门书，从问题出发而不是从历史出发。', tags: ['入门', '导论'], link: 'https://book.douban.com/subject/10718761/', linkText: '豆瓣查看' },
+      { title: 'B站：哲学王子王德峰', desc: '复旦大学王德峰教授，讲西哲、中哲、艺术哲学，有大师风范。', tags: ['视频', '西哲+中哲'], link: 'https://search.bilibili.com/all?keyword=王德峰', linkText: '去B站搜索' },
+      { title: '《存在与时间》', desc: '海德格尔，20世纪最重要的哲学著作之一，改变了哲学的提问方式。', tags: ['经典', '进阶'], link: 'https://book.douban.com/subject/30275803/', linkText: '豆瓣查看' }
+    ],
+    bridges: [
+      { from: '哲学', to: '心理学', logic: '从思辨到实证——哲学提出的问题，心理学正在用科学方法回答。', rec: { title: '《思考，快与慢》', desc: '卡尼曼，行为经济学奠基之作，揭示人类思维的两套系统。', tags: ['心理学', '认知科学'], link: 'https://book.douban.com/subject/10785583/', linkText: '豆瓣查看' } },
+      { from: '哲学', to: '文学', logic: '哲学用概念说不可说，文学用故事说不可说——两条路通向同一个地方。', rec: { title: '《文学理论》', desc: '韦勒克·沃伦，文学理论经典，帮你建立文学阅读的坐标系。', tags: ['文学', '理论'], link: 'https://book.douban.com/subject/1437803/', linkText: '豆瓣查看' } }
+    ]
+  },
+  '前端开发': {
+    vertical: [
+      { title: '《JavaScript高级程序设计》', desc: '红宝书，前端工程师案头必备，从基础到高级全面覆盖。', tags: ['经典', 'JavaScript'], link: 'https://book.douban.com/subject/35175321/', linkText: '豆瓣查看' },
+      { title: 'B站：尚硅谷 / 黑马程序员', desc: '系统的前端教程，从HTML/CSS到框架全家桶，保姆级教学。', tags: ['视频', '系统学习'], link: 'https://space.bilibili.com/13877204', linkText: '去B站' },
+      { title: 'MDN Web Docs', desc: '前端的百科全书，查任何Web API都先看MDN。', tags: ['文档', '工具'], link: 'https://developer.mozilla.org/zh-CN/', linkText: '访问MDN' }
+    ],
+    bridges: [
+      { from: '前端开发', to: '设计学', logic: '技术与设计的交汇点——好的前端工程师必须有设计思维。', rec: { title: '《写给大家看的设计书》', desc: '罗宾·威廉姆斯，设计四原则：对比、重复、对齐、亲密性。', tags: ['设计', '入门必读'], link: 'https://book.douban.com/subject/3323633/', linkText: '豆瓣查看' } },
+      { from: '前端开发', to: '产品思维', logic: '从实现者到创造者——懂产品的前端才有更大的话语权。', rec: { title: '《用户体验要素》', desc: '加瑞特，用户体验的五层模型，产品/设计/开发都应该读。', tags: ['产品', 'UX'], link: 'https://book.douban.com/subject/6874838/', linkText: '豆瓣查看' } }
+    ]
+  },
+  '心理学': {
+    vertical: [
+      { title: '《心理学与生活》', desc: '最经典的心理学入门教材，第19版，系统全面。', tags: ['教材', '入门'], link: 'https://book.douban.com/subject/35336714/', linkText: '豆瓣查看' },
+      { title: 'B站：彭凯平 积极心理学', desc: '清华彭凯平教授，积极心理学中国领军人物，讲得通透。', tags: ['视频', '积极心理学'], link: 'https://search.bilibili.com/all?keyword=彭凯平', linkText: '去B站搜索' },
+      { title: '《社会心理学》', desc: '戴维·迈尔斯，社会心理学的巅峰之作，读完你会更懂人。', tags: ['经典', '社会心理'], link: 'https://book.douban.com/subject/26873249/', linkText: '豆瓣查看' }
+    ],
+    bridges: [
+      { from: '心理学', to: '神经科学', logic: '心理的物质基础——从分子层面理解你的情绪、记忆、决策。', rec: { title: '《大脑的故事》', desc: '大卫·伊格曼，神经科学的入门神作，故事性极强。', tags: ['神经科学', '通俗易读'], link: 'https://book.douban.com/subject/34440392/', linkText: '豆瓣查看' } },
+      { from: '心理学', to: '哲学', logic: '心理学回答"人如何思考"，哲学回答"人应该如何思考"。', rec: { title: '《直觉泵和其他思考工具》', desc: '丹尼尔·丹尼特，哲学家+认知科学家，77个思考工具。', tags: ['认知科学', '思维工具'], link: 'https://book.douban.com/subject/34805219/', linkText: '豆瓣查看' } }
+    ]
+  }
+};
+
+function getRecData(field) {
+  if (recLibrary[field]) {
+    return recLibrary[field];
+  }
+  
+  const searchUrl = `https://www.bilibili.com/search?keyword=${encodeURIComponent(field)}`;
+  const doubanUrl = `https://book.douban.com/subject_search?search_text=${encodeURIComponent(field)}`;
+  const zhihuUrl = `https://www.zhihu.com/search?q=${encodeURIComponent(field)}`;
+  
+  return {
+    vertical: [
+      { title: `${field} 入门经典书单`, desc: `从入门到进阶的${field}学习路径，豆瓣高分精选。`, tags: ['书单', '入门→进阶'], link: doubanUrl, linkText: '豆瓣搜索' },
+      { title: `B站 ${field} 优质视频推荐`, desc: `精选${field}领域的优质UP主和视频课程，边看边学。`, tags: ['视频', '学习资源'], link: searchUrl, linkText: '去B站' },
+      { title: `知乎 ${field} 话题精选`, desc: `来自社区的高质量讨论和经验分享，从多个角度理解。`, tags: ['社区', '多视角'], link: zhihuUrl, linkText: '去知乎' }
+    ],
+    bridges: [
+      { from: field, to: '认知科学', logic: `任何深入的${field}学习，最终都会触碰到认知的边界——人是如何认识世界的？`, rec: { title: '《认知心理学》', desc: '从感知、注意、记忆到思维，系统了解人类的认知机制。', tags: ['认知科学', '基础'], link: 'https://book.douban.com/subject/3259810/', linkText: '豆瓣查看' } },
+      { from: field, to: '系统思维', logic: `跳出${field}的细节，用系统的视角重新看问题，往往有意外收获。`, rec: { title: '《系统之美》', desc: '德内拉·梅多斯，系统思考入门，改变你看世界的方式。', tags: ['系统思维', '方法论'], link: 'https://book.douban.com/subject/11528220/', linkText: '豆瓣查看' } }
+    ]
+  };
+}
+
+function renderRecommendations() {
+  const primaryField = state.selectedFields[0] || '你的兴趣领域';
+  const recData = getRecData(primaryField);
+  
+  const verticalContainer = document.getElementById('verticalRecs');
+  verticalContainer.innerHTML = '';
+  
+  recData.vertical.forEach(rec => {
+    const card = document.createElement('div');
+    card.className = 'rec-card';
+    card.innerHTML = `
+      <div class="rec-card-title">${rec.title}</div>
+      <div class="rec-card-desc">${rec.desc}</div>
+      <div class="rec-card-tags">
+        ${rec.tags.map(t => `<span class="rec-card-tag">${t}</span>`).join('')}
+      </div>
+      <a class="rec-card-link" href="${rec.link}" target="_blank" rel="noopener">${rec.linkText} →</a>
+    `;
+    verticalContainer.appendChild(card);
+  });
+  
+  const bridgeContainer = document.getElementById('bridgeRecs');
+  bridgeContainer.innerHTML = '';
+  
+  if (state.currentRound >= 4) {
+    recData.bridges.forEach(bridge => {
+      const bridgeCard = document.createElement('div');
+      bridgeCard.className = 'bridge-card';
+      bridgeCard.innerHTML = `
+        <div class="bridge-from-to">
+          <span class="bridge-from">${bridge.from}</span>
+          <span class="bridge-arrow">→</span>
+          <span class="bridge-to">${bridge.to}</span>
+        </div>
+        <div class="bridge-logic">${bridge.logic}</div>
+        <div class="rec-card" style="margin-bottom: 0; background: rgba(255,255,255,0.02);">
+          <div class="rec-card-title">${bridge.rec.title}</div>
+          <div class="rec-card-desc">${bridge.rec.desc}</div>
+          <div class="rec-card-tags">
+            ${bridge.rec.tags.map(t => `<span class="rec-card-tag">${t}</span>`).join('')}
+          </div>
+          <a class="rec-card-link violet" href="${bridge.rec.link}" target="_blank" rel="noopener">${bridge.rec.linkText} →</a>
+        </div>
+      `;
+      bridgeContainer.appendChild(bridgeCard);
+    });
+  } else {
+    const roundsDone = state.currentRound;
+    const roundsNeeded = Math.max(0, 4 - roundsDone);
+    const progress = Math.min(100, (roundsDone / 4) * 100);
+    
+    const lockedDiv = document.createElement('div');
+    lockedDiv.className = 'bridge-locked';
+    lockedDiv.innerHTML = `
+      <div class="bridge-lock-icon">🔒</div>
+      <div class="bridge-locked-title">水平桥接未解锁</div>
+      <div class="bridge-locked-desc">完成 4 轮以上对话，解锁跨界推荐</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="progress-text">已完成 ${roundsDone} 轮，还需 ${roundsNeeded} 轮</div>
+      </div>
+    `;
+    bridgeContainer.appendChild(lockedDiv);
+  }
+}
+
+// ========== Init ==========
+window.addEventListener('load', () => {
+  document.getElementById('progressBar').style.width = '0%';
+});
+</script>
+</body>
+</html>
